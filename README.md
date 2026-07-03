@@ -99,9 +99,9 @@ Implemented minimal retrievers:
 
 `configs/toy.yaml` defaults to `bm25` so the smoke demo can run without downloading embedding models.
 
-## Download Raw Datasets From HuggingFace
+## Download And Convert Datasets
 
-Current dataset download support only exports raw HuggingFace validation splits to JSONL. It does not convert data into `corpus.jsonl` / `queries.jsonl` yet. A later `data/convert.py` step will handle project-schema conversion.
+Download raw HuggingFace validation splits to JSONL:
 
 ```bash
 python scripts/download_dataset.py --dataset hotpotqa --output-dir data/raw/hotpotqa
@@ -109,13 +109,27 @@ python scripts/download_dataset.py --dataset twowiki --output-dir data/raw/twowi
 python scripts/download_dataset.py --dataset musique --output-dir data/raw/musique
 ```
 
-Each command writes:
+Raw download outputs:
 
 - `*.jsonl`: the full raw exported split
 - `*_preview.json`: the first sample for quick structure inspection
 - `*_report.json`: dataset name, split, fields, row count, and output paths
 
-`data/raw/` is ignored by git and should not be committed.
+Convert raw JSONL into the project format:
+
+```bash
+python scripts/convert_dataset.py --dataset hotpotqa --input data/raw/hotpotqa/hotpotqa_distractor_validation.jsonl --output-dir data/processed/hotpotqa_distractor_validation
+python scripts/convert_dataset.py --dataset twowiki --input data/raw/twowiki/twowiki_validation.jsonl --output-dir data/processed/twowiki_validation
+python scripts/convert_dataset.py --dataset musique --input data/raw/musique/musique_validation.jsonl --output-dir data/processed/musique_validation
+```
+
+Conversion outputs:
+
+- `corpus.jsonl`: unified retrieval corpus
+- `queries.jsonl`: unified questions and gold supporting docs
+- `conversion_report.json`: conversion counts and small conflict/missing-support samples
+
+HotpotQA and 2Wiki use title/page-level docs; sentences are joined into `text` and preserved in metadata. MuSiQue uses paragraph-level docs and preserves `question_decomposition` in metadata. `data/raw/` and `data/processed/` are ignored by git and should not be committed.
 
 ## Future Plan
 
