@@ -99,6 +99,51 @@ Implemented minimal retrievers:
 
 `configs/toy.yaml` defaults to `bm25` so the smoke demo can run without downloading embedding models.
 
+## Dataset Download and Conversion
+
+Download raw data first, then convert it into the project schema.
+
+HotpotQA example:
+
+```bash
+python scripts/download_dataset.py \
+  --dataset hotpotqa \
+  --split dev_distractor \
+  --output-dir data/raw/hotpotqa
+
+python scripts/convert_dataset.py \
+  --dataset hotpotqa \
+  --input data/raw/hotpotqa/hotpot_dev_distractor_v1.json \
+  --output-dir data/processed/hotpotqa_dev_distractor \
+  --split dev_distractor
+```
+
+2WikiMultiHopQA and MuSiQue are distributed through cloud links that may change. If the built-in URL is stale, download manually from the official project page or pass a current URL:
+
+```bash
+python scripts/download_dataset.py \
+  --dataset twowiki \
+  --url <URL> \
+  --filename twowiki.zip \
+  --output-dir data/raw/twowiki
+
+python scripts/download_dataset.py \
+  --dataset musique \
+  --url <URL> \
+  --filename musique.zip \
+  --output-dir data/raw/musique
+```
+
+Converters do not download data. They only transform local raw JSON/JSONL files into:
+
+```text
+corpus.jsonl
+queries.jsonl
+conversion_report.json
+```
+
+The framework uses `corpus.jsonl` and `queries.jsonl` everywhere. Original dataset-specific fields such as supporting facts, decompositions, evidence IDs, and answer aliases are preserved in `metadata` where possible.
+
 ## Future Plan
 
 - OpenIE extraction
