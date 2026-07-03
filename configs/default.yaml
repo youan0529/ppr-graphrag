@@ -1,0 +1,49 @@
+experiment:
+  project_name: ppr_graphrag
+  run_name: default
+  seed: 13
+  output_dir: experiments
+
+llm:
+  provider: openai_compatible
+  model: gpt-oss:20b
+  base_url: http://localhost:11434/v1
+  api_key: ollama
+  temperature: 0.0
+  max_tokens: 512
+  timeout: 120.0
+  cache_enabled: true
+  cache_path: cache/llm.sqlite
+
+embedding:
+  provider: sentence_transformers
+  model_name_or_path: sentence-transformers/all-MiniLM-L6-v2
+  device: null
+  batch_size: 32
+  normalize: true
+  cache_enabled: true
+  cache_path: cache/embedding.sqlite
+
+data:
+  corpus_path: data/toy/corpus.jsonl
+  queries_path: data/toy/queries.jsonl
+  chunk_size: 512
+  chunk_overlap: 64
+
+graph:
+  graph_path: artifacts/graph.pkl
+  directed: false
+  add_self_loops: false
+
+retrieval:
+  method: bm25
+  top_k: 3
+  ppr_alpha: 0.85
+  ppr_max_iter: 100
+  ppr_tol: 1.0e-6
+
+resume:
+  resume_index: true
+  resume_retrieval: true
+  force_rebuild_index: false
+  force_retrieve: false
