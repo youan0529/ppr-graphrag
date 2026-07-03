@@ -26,6 +26,18 @@ class ArtifactManager:
     def exists(self, *parts: str) -> bool:
         return self.path(*parts).exists()
 
+    def delete(self, *parts: str) -> None:
+        path = self.path(*parts)
+        root = self.root_dir.resolve()
+        target = path.resolve(strict=False)
+        if not target.is_relative_to(root):
+            raise ValueError(f"Refusing to delete outside artifact root: {path}")
+        if not path.exists():
+            return
+        if path.is_dir():
+            raise IsADirectoryError(f"Refusing to delete directory: {path}")
+        path.unlink()
+
     def load_json(self, *parts: str) -> Any:
         with self.path(*parts).open("r", encoding="utf-8") as f:
             return json.load(f)

@@ -15,8 +15,8 @@ def test_load_corpus_and_queries(tmp_path) -> None:
             {
                 "query_id": "q1",
                 "question": "hello?",
-                "answers": ["hello"],
-                "supporting_doc_ids": ["d1"],
+                "answers": "hello",
+                "supporting_doc_ids": "d1",
                 "supporting_facts": [],
                 "metadata": {},
             }
@@ -28,4 +28,5 @@ def test_load_corpus_and_queries(tmp_path) -> None:
     queries = load_queries(queries_path)
     assert docs[0].doc_id == "d1"
     assert docs[0].metadata["x"] == 1
+    assert queries[0].answers == ["hello"]
     assert queries[0].supporting_doc_ids == ["d1"]

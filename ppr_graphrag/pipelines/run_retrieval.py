@@ -16,7 +16,11 @@ from ppr_graphrag.retrieval.base import BaseRetriever, RetrievalResult
 
 def load_or_build_retriever(config: AppConfig, corpus: list[Document], artifact_manager: ArtifactManager) -> BaseRetriever:
     retriever = make_retriever(config, artifact_manager)
-    if artifact_manager.is_stage_done("index") and not config.resume.force_rebuild_index:
+    if (
+        config.resume.resume_index
+        and artifact_manager.is_stage_done("index")
+        and not config.resume.force_rebuild_index
+    ):
         retriever.load(artifact_manager)
         return retriever
     return build_and_save_index(config, corpus, artifact_manager)
@@ -29,8 +33,11 @@ def run_retrieval(
     artifact_manager: ArtifactManager,
 ) -> dict[str, float]:
     retriever = load_or_build_retriever(config, corpus, artifact_manager)
+    if config.resume.force_retrieve:
+        artifact_manager.delete("artifacts", "retrieval_results.jsonl")
+        artifact_manager.delete("artifacts", "retrieval.done.json")
     existing_rows = artifact_manager.load_jsonl("artifacts", "retrieval_results.jsonl")
-    done = {row["query_id"] for row in existing_rows} if config.resume.resume_retrieval and not config.resume.force_retrieve else set()
+    done = {row["query_id"] for row in existing_rows} if config.resume.resume_retrieval else set()
     results_by_query: dict[str, list[RetrievalResult]] = {}
     for row in existing_rows:
         if row["query_id"] in done:

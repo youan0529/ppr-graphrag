@@ -20,6 +20,7 @@ def test_cached_llm_hits_cache(tmp_path) -> None:
     first = cached.generate(messages)
     second = cached.generate(messages)
     assert first.text == "ok-1"
+    assert first.cache_hit is False
     assert second.text == "ok-1"
     assert second.cache_hit is True
     assert llm.calls == 1

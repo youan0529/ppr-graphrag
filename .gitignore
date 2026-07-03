@@ -22,6 +22,6 @@ dist/
 *.parquet
 *.log
 
-data/
-experiments/*
-!experiments/.gitkeep
+/data/
+/experiments/*/
+!/experiments/.gitkeep

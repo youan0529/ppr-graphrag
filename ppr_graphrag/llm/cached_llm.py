@@ -35,10 +35,12 @@ class CachedLLM:
         key = self._key(messages, kwargs)
         cached = self.cache.get(key)
         if cached is not None:
-            cached["cache_hit"] = True
-            return LLMResponse(**cached)
+            payload = dict(cached)
+            payload.pop("cache_hit", None)
+            return LLMResponse(**payload, cache_hit=True)
         response = self.llm.generate(messages, **kwargs)
         payload = asdict(response)
-        payload["cache_hit"] = False
+        payload.pop("cache_hit", None)
         self.cache.set(key, payload, metadata={"model": self.config.model})
+        response.cache_hit = False
         return response
