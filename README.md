@@ -99,6 +99,24 @@ Implemented minimal retrievers:
 
 `configs/toy.yaml` defaults to `bm25` so the smoke demo can run without downloading embedding models.
 
+## Download Raw Datasets From HuggingFace
+
+Current dataset download support only exports raw HuggingFace validation splits to JSONL. It does not convert data into `corpus.jsonl` / `queries.jsonl` yet. A later `data/convert.py` step will handle project-schema conversion.
+
+```bash
+python scripts/download_dataset.py --dataset hotpotqa --output-dir data/raw/hotpotqa
+python scripts/download_dataset.py --dataset twowiki --output-dir data/raw/twowiki
+python scripts/download_dataset.py --dataset musique --output-dir data/raw/musique
+```
+
+Each command writes:
+
+- `*.jsonl`: the full raw exported split
+- `*_preview.json`: the first sample for quick structure inspection
+- `*_report.json`: dataset name, split, fields, row count, and output paths
+
+`data/raw/` is ignored by git and should not be committed.
+
 ## Future Plan
 
 - OpenIE extraction
