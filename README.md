@@ -128,6 +128,7 @@ Conversion outputs:
 - `corpus.jsonl`: unified retrieval corpus
 - `queries.jsonl`: unified questions and gold supporting docs
 - `conversion_report.json`: conversion counts and small conflict/missing-support samples
+- `conversion_preview.json`: first-sample conversion preview with ID rules, converted query, and converted docs
 
 HotpotQA and 2Wiki use title/page-level docs; sentences are joined into `text` and preserved in metadata. MuSiQue uses paragraph-level docs and preserves `question_decomposition` in metadata. `data/raw/` and `data/processed/` are ignored by git and should not be committed.
 

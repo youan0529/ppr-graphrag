@@ -60,17 +60,40 @@ def unique_preserve_order(items: list[Any]) -> list[Any]:
     return output
 
 
-def _check_outputs(output_dir: str | Path, overwrite: bool) -> tuple[Path, Path, Path]:
+def _check_outputs(output_dir: str | Path, overwrite: bool) -> tuple[Path, Path, Path, Path]:
     output = Path(output_dir)
     corpus_path = output / "corpus.jsonl"
     queries_path = output / "queries.jsonl"
     report_path = output / "conversion_report.json"
+    preview_path = output / "conversion_preview.json"
     if not overwrite:
-        existing = [str(path) for path in (corpus_path, queries_path, report_path) if path.exists()]
+        existing = [str(path) for path in (corpus_path, queries_path, report_path, preview_path) if path.exists()]
         if existing:
             raise FileExistsError(f"Output files already exist: {existing}. Re-run with --overwrite to replace them.")
     output.mkdir(parents=True, exist_ok=True)
-    return corpus_path, queries_path, report_path
+    return corpus_path, queries_path, report_path, preview_path
+
+
+def _id_rules(dataset: str) -> dict[str, str]:
+    if dataset == "hotpotqa":
+        return {
+            "query_id": "raw['id']",
+            "doc_id": "hotpotqa:<normalized_title>",
+            "supporting_doc_ids": "supporting_facts.title -> hotpotqa:<normalized_title>",
+        }
+    if dataset == "twowiki":
+        return {
+            "query_id": "raw['id']",
+            "doc_id": "twowiki:<normalized_title>",
+            "supporting_doc_ids": "supporting_facts.title -> twowiki:<normalized_title>",
+            "note": "evidences are preserved in query.metadata and are not used to construct supporting_doc_ids",
+        }
+    return {
+        "query_id": "raw['id']",
+        "doc_id": "musique:<normalized_title>:<md5(title + '\\n' + paragraph_text)[:12]>",
+        "supporting_doc_ids": "question_decomposition paragraph_support_idx first, then is_supporting paragraphs",
+        "note": "MuSiQue uses paragraph-level docs, not title-level docs",
+    }
 
 
 def _write_outputs(
@@ -82,17 +105,22 @@ def _write_outputs(
     num_raw_examples: int,
     doc_conflicts: list[dict[str, Any]],
     missing_support_docs: list[dict[str, Any]],
+    preview: dict[str, Any],
     overwrite: bool,
 ) -> dict[str, Any]:
-    corpus_path, queries_path, report_path = _check_outputs(output_dir, overwrite)
+    corpus_path, queries_path, report_path, preview_path = _check_outputs(output_dir, overwrite)
     write_jsonl(corpus_path, list(corpus.values()))
     write_jsonl(queries_path, queries)
+    with preview_path.open("w", encoding="utf-8") as f:
+        json.dump(preview, f, ensure_ascii=False, indent=2)
+        f.write("\n")
     report = {
         "dataset": dataset,
         "input_path": str(input_path),
         "output_dir": str(output_dir),
         "corpus_path": str(corpus_path),
         "queries_path": str(queries_path),
+        "preview_path": str(preview_path),
         "num_raw_examples": num_raw_examples,
         "num_documents": len(corpus),
         "num_queries": len(queries),
@@ -127,6 +155,7 @@ def convert_hotpotqa(input_path: str | Path, output_dir: str | Path, overwrite: 
     queries = []
     doc_conflicts: list[dict[str, Any]] = []
     missing_support_docs: list[dict[str, Any]] = []
+    preview: dict[str, Any] | None = None
 
     for raw in rows:
         query_id = str(raw["id"])
@@ -134,36 +163,32 @@ def convert_hotpotqa(input_path: str | Path, output_dir: str | Path, overwrite: 
         sentence_groups = raw["context"]["sentences"]
         context_doc_ids = []
         title_to_doc_id = {}
+        converted_docs = []
 
         for title, sentences in zip(titles, sentence_groups, strict=True):
             norm_title = normalize_title(title)
             doc_id = make_title_doc_id("hotpotqa", norm_title)
             title_to_doc_id[norm_title] = doc_id
             context_doc_ids.append(doc_id)
-            _add_doc(
-                corpus,
-                {
-                    "doc_id": doc_id,
-                    "title": norm_title,
-                    "text": normalize_text(" ".join(sentences)),
-                    "metadata": {
-                        "dataset": "hotpotqa",
-                        "source": "context",
-                        "original_title": title,
-                        "sentences": sentences,
-                    },
+            doc = {
+                "doc_id": doc_id,
+                "title": norm_title,
+                "text": normalize_text(" ".join(sentences)),
+                "metadata": {
+                    "dataset": "hotpotqa",
+                    "source": "context",
+                    "original_title": title,
+                    "sentences": sentences,
                 },
-                query_id,
-                doc_conflicts,
-            )
+            }
+            converted_docs.append(doc)
+            _add_doc(corpus, doc, query_id, doc_conflicts)
 
+        support_titles = raw.get("supporting_facts", {}).get("title", [])
+        support_sent_ids = raw.get("supporting_facts", {}).get("sent_id", [])
         supporting_facts = [
             {"title": normalize_title(title), "sent_id": sent_id}
-            for title, sent_id in zip(
-                raw.get("supporting_facts", {}).get("title", []),
-                raw.get("supporting_facts", {}).get("sent_id", []),
-                strict=True,
-            )
+            for title, sent_id in zip(support_titles, support_sent_ids, strict=True)
         ]
         support_ids = []
         missing_titles = []
@@ -177,24 +202,59 @@ def convert_hotpotqa(input_path: str | Path, output_dir: str | Path, overwrite: 
         if missing_titles:
             missing_support_docs.append({"query_id": query_id, "titles": missing_titles})
 
-        queries.append(
-            {
-                "query_id": query_id,
-                "question": str(raw["question"]),
-                "answers": [] if raw.get("answer") is None else [str(raw["answer"])],
-                "supporting_doc_ids": support_ids,
-                "supporting_facts": supporting_facts,
-                "metadata": {
-                    "dataset": "hotpotqa",
+        query = {
+            "query_id": query_id,
+            "question": str(raw["question"]),
+            "answers": [] if raw.get("answer") is None else [str(raw["answer"])],
+            "supporting_doc_ids": support_ids,
+            "supporting_facts": supporting_facts,
+            "metadata": {
+                "dataset": "hotpotqa",
+                "type": raw.get("type"),
+                "level": raw.get("level"),
+                "context_doc_ids": context_doc_ids,
+                "missing_support_titles": missing_titles,
+            },
+        }
+        queries.append(query)
+
+        if preview is None:
+            preview = {
+                "dataset": "hotpotqa",
+                "input_path": str(input_path),
+                "id_rules": _id_rules("hotpotqa"),
+                "raw_example_brief": {
+                    "id": raw["id"],
+                    "question": raw["question"],
+                    "answer": raw.get("answer"),
                     "type": raw.get("type"),
                     "level": raw.get("level"),
-                    "context_doc_ids": context_doc_ids,
-                    "missing_support_titles": missing_titles,
+                    "supporting_titles": list(support_titles),
                 },
+                "converted_query": query,
+                "converted_corpus_docs": converted_docs,
             }
-        )
 
-    return _write_outputs("hotpotqa", input_path, output_dir, corpus, queries, len(rows), doc_conflicts, missing_support_docs, overwrite)
+    preview = preview or {
+        "dataset": "hotpotqa",
+        "input_path": str(input_path),
+        "id_rules": _id_rules("hotpotqa"),
+        "raw_example_brief": {},
+        "converted_query": {},
+        "converted_corpus_docs": [],
+    }
+    return _write_outputs(
+        "hotpotqa",
+        input_path,
+        output_dir,
+        corpus,
+        queries,
+        len(rows),
+        doc_conflicts,
+        missing_support_docs,
+        preview,
+        overwrite,
+    )
 
 
 def convert_twowiki(input_path: str | Path, output_dir: str | Path, overwrite: bool = False) -> dict[str, Any]:
@@ -203,6 +263,7 @@ def convert_twowiki(input_path: str | Path, output_dir: str | Path, overwrite: b
     queries = []
     doc_conflicts: list[dict[str, Any]] = []
     missing_support_docs: list[dict[str, Any]] = []
+    preview: dict[str, Any] | None = None
 
     for raw in rows:
         query_id = str(raw["id"])
@@ -210,36 +271,32 @@ def convert_twowiki(input_path: str | Path, output_dir: str | Path, overwrite: b
         sentence_groups = raw["context"]["sentences"]
         context_doc_ids = []
         title_to_doc_id = {}
+        converted_docs = []
 
         for title, sentences in zip(titles, sentence_groups, strict=True):
             norm_title = normalize_title(title)
             doc_id = make_title_doc_id("twowiki", norm_title)
             title_to_doc_id[norm_title] = doc_id
             context_doc_ids.append(doc_id)
-            _add_doc(
-                corpus,
-                {
-                    "doc_id": doc_id,
-                    "title": norm_title,
-                    "text": normalize_text(" ".join(sentences)),
-                    "metadata": {
-                        "dataset": "twowiki",
-                        "source": "context",
-                        "original_title": title,
-                        "sentences": sentences,
-                    },
+            doc = {
+                "doc_id": doc_id,
+                "title": norm_title,
+                "text": normalize_text(" ".join(sentences)),
+                "metadata": {
+                    "dataset": "twowiki",
+                    "source": "context",
+                    "original_title": title,
+                    "sentences": sentences,
                 },
-                query_id,
-                doc_conflicts,
-            )
+            }
+            converted_docs.append(doc)
+            _add_doc(corpus, doc, query_id, doc_conflicts)
 
+        support_titles = raw.get("supporting_facts", {}).get("title", [])
+        support_sent_ids = raw.get("supporting_facts", {}).get("sent_id", [])
         supporting_facts = [
             {"title": normalize_title(title), "sent_id": sent_id}
-            for title, sent_id in zip(
-                raw.get("supporting_facts", {}).get("title", []),
-                raw.get("supporting_facts", {}).get("sent_id", []),
-                strict=True,
-            )
+            for title, sent_id in zip(support_titles, support_sent_ids, strict=True)
         ]
         support_ids = []
         missing_titles = []
@@ -253,24 +310,59 @@ def convert_twowiki(input_path: str | Path, output_dir: str | Path, overwrite: b
         if missing_titles:
             missing_support_docs.append({"query_id": query_id, "titles": missing_titles})
 
-        queries.append(
-            {
-                "query_id": query_id,
-                "question": str(raw["question"]),
-                "answers": [] if raw.get("answer") is None else [str(raw["answer"])],
-                "supporting_doc_ids": support_ids,
-                "supporting_facts": supporting_facts,
-                "metadata": {
-                    "dataset": "twowiki",
-                    "type": raw.get("type"),
-                    "evidences": raw.get("evidences", []),
-                    "context_doc_ids": context_doc_ids,
-                    "missing_support_titles": missing_titles,
-                },
-            }
-        )
+        query = {
+            "query_id": query_id,
+            "question": str(raw["question"]),
+            "answers": [] if raw.get("answer") is None else [str(raw["answer"])],
+            "supporting_doc_ids": support_ids,
+            "supporting_facts": supporting_facts,
+            "metadata": {
+                "dataset": "twowiki",
+                "type": raw.get("type"),
+                "evidences": raw.get("evidences", []),
+                "context_doc_ids": context_doc_ids,
+                "missing_support_titles": missing_titles,
+            },
+        }
+        queries.append(query)
 
-    return _write_outputs("twowiki", input_path, output_dir, corpus, queries, len(rows), doc_conflicts, missing_support_docs, overwrite)
+        if preview is None:
+            preview = {
+                "dataset": "twowiki",
+                "input_path": str(input_path),
+                "id_rules": _id_rules("twowiki"),
+                "raw_example_brief": {
+                    "id": raw["id"],
+                    "question": raw["question"],
+                    "answer": raw.get("answer"),
+                    "type": raw.get("type"),
+                    "supporting_titles": list(support_titles),
+                    "evidences": raw.get("evidences", []),
+                },
+                "converted_query": query,
+                "converted_corpus_docs": converted_docs,
+            }
+
+    preview = preview or {
+        "dataset": "twowiki",
+        "input_path": str(input_path),
+        "id_rules": _id_rules("twowiki"),
+        "raw_example_brief": {},
+        "converted_query": {},
+        "converted_corpus_docs": [],
+    }
+    return _write_outputs(
+        "twowiki",
+        input_path,
+        output_dir,
+        corpus,
+        queries,
+        len(rows),
+        doc_conflicts,
+        missing_support_docs,
+        preview,
+        overwrite,
+    )
 
 
 def convert_musique(input_path: str | Path, output_dir: str | Path, overwrite: bool = False) -> dict[str, Any]:
@@ -279,12 +371,14 @@ def convert_musique(input_path: str | Path, output_dir: str | Path, overwrite: b
     queries = []
     doc_conflicts: list[dict[str, Any]] = []
     missing_support_docs: list[dict[str, Any]] = []
+    preview: dict[str, Any] | None = None
 
     for raw in rows:
         query_id = str(raw["id"])
         idx_to_doc_id = {}
         idx_to_paragraph = {}
         context_doc_ids = []
+        converted_docs = []
 
         for paragraph in raw["paragraphs"]:
             idx = paragraph["idx"]
@@ -294,23 +388,20 @@ def convert_musique(input_path: str | Path, output_dir: str | Path, overwrite: b
             idx_to_doc_id[idx] = doc_id
             idx_to_paragraph[idx] = paragraph
             context_doc_ids.append(doc_id)
-            _add_doc(
-                corpus,
-                {
-                    "doc_id": doc_id,
-                    "title": title,
-                    "text": text,
-                    "metadata": {
-                        "dataset": "musique",
-                        "source": "paragraphs",
-                        "original_query_id": query_id,
-                        "paragraph_idx": idx,
-                        "is_supporting": paragraph.get("is_supporting", False),
-                    },
+            doc = {
+                "doc_id": doc_id,
+                "title": title,
+                "text": text,
+                "metadata": {
+                    "dataset": "musique",
+                    "source": "paragraphs",
+                    "original_query_id": query_id,
+                    "paragraph_idx": idx,
+                    "is_supporting": paragraph.get("is_supporting", False),
                 },
-                query_id,
-                doc_conflicts,
-            )
+            }
+            converted_docs.append(doc)
+            _add_doc(corpus, doc, query_id, doc_conflicts)
 
         support_idxs = []
         supporting_facts = []
@@ -342,24 +433,59 @@ def convert_musique(input_path: str | Path, output_dir: str | Path, overwrite: b
         if missing_idxs:
             missing_support_docs.append({"query_id": query_id, "paragraph_idxs": missing_idxs})
 
-        queries.append(
-            {
-                "query_id": query_id,
-                "question": str(raw["question"]),
-                "answers": [] if raw.get("answer") is None else [str(raw["answer"])],
-                "supporting_doc_ids": support_ids,
-                "supporting_facts": supporting_facts,
-                "metadata": {
-                    "dataset": "musique",
-                    "answerable": raw.get("answerable"),
-                    "answer_aliases": raw.get("answer_aliases", []),
-                    "question_decomposition": raw.get("question_decomposition", []),
-                    "context_doc_ids": context_doc_ids,
-                },
-            }
-        )
+        query = {
+            "query_id": query_id,
+            "question": str(raw["question"]),
+            "answers": [] if raw.get("answer") is None else [str(raw["answer"])],
+            "supporting_doc_ids": support_ids,
+            "supporting_facts": supporting_facts,
+            "metadata": {
+                "dataset": "musique",
+                "answerable": raw.get("answerable"),
+                "answer_aliases": raw.get("answer_aliases", []),
+                "question_decomposition": raw.get("question_decomposition", []),
+                "context_doc_ids": context_doc_ids,
+            },
+        }
+        queries.append(query)
 
-    return _write_outputs("musique", input_path, output_dir, corpus, queries, len(rows), doc_conflicts, missing_support_docs, overwrite)
+        if preview is None:
+            preview = {
+                "dataset": "musique",
+                "input_path": str(input_path),
+                "id_rules": _id_rules("musique"),
+                "raw_example_brief": {
+                    "id": raw["id"],
+                    "question": raw["question"],
+                    "answer": raw.get("answer"),
+                    "answerable": raw.get("answerable"),
+                    "supporting_paragraph_idxs": support_idxs,
+                    "question_decomposition": raw.get("question_decomposition", []),
+                },
+                "converted_query": query,
+                "converted_corpus_docs": converted_docs,
+            }
+
+    preview = preview or {
+        "dataset": "musique",
+        "input_path": str(input_path),
+        "id_rules": _id_rules("musique"),
+        "raw_example_brief": {},
+        "converted_query": {},
+        "converted_corpus_docs": [],
+    }
+    return _write_outputs(
+        "musique",
+        input_path,
+        output_dir,
+        corpus,
+        queries,
+        len(rows),
+        doc_conflicts,
+        missing_support_docs,
+        preview,
+        overwrite,
+    )
 
 
 def convert_dataset(dataset: str, input_path: str | Path, output_dir: str | Path, overwrite: bool = False) -> dict[str, Any]:
