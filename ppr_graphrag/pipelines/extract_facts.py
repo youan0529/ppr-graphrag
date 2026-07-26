@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 from collections import Counter
-from concurrent.futures import Future, ThreadPoolExecutor, as_completed
+from concurrent.futures import FIRST_COMPLETED, Future, ThreadPoolExecutor, wait
 from dataclasses import replace
 import json
 from pathlib import Path
@@ -144,10 +144,16 @@ def extract_facts(
         pending = [document for document in corpus if document.doc_id not in completed]
         workers = max(1, config.graph.extraction_workers)
         with ThreadPoolExecutor(max_workers=workers) as executor:
-            futures: list[Future[tuple[bool, dict[str, Any]]]] = []
-            for index, document in enumerate(pending):
+            document_iter = iter(enumerate(pending))
+            futures: set[Future[tuple[bool, dict[str, Any]]]] = set()
+
+            def submit_next() -> bool:
+                try:
+                    index, document = next(document_iter)
+                except StopIteration:
+                    return False
                 llm = llms[index % len(llms)]
-                futures.append(
+                futures.add(
                     executor.submit(
                         _extract_document,
                         document,
@@ -156,19 +162,35 @@ def extract_facts(
                         config.llm.reasoning_effort,
                     )
                 )
-            for index, future in enumerate(
-                tqdm(as_completed(futures), total=len(futures), desc="extracting facts"),
-                start=1,
-            ):
-                succeeded, row = future.result()
-                if succeeded:
-                    artifacts.append_jsonl(row, *success_parts)
-                    successes.append(row)
-                else:
-                    artifacts.append_jsonl(row, *error_parts)
-                    errors.append(row)
-                if index % 100 == 0:
-                    _write_report(artifacts, len(corpus), successes, errors, started_at, cache.stats())
+                return True
+
+            for _ in range(min(workers, len(pending))):
+                submit_next()
+
+            completed_count = 0
+            with tqdm(total=len(pending), desc="extracting facts") as progress:
+                while futures:
+                    done, futures = wait(futures, return_when=FIRST_COMPLETED)
+                    for future in done:
+                        succeeded, row = future.result()
+                        if succeeded:
+                            artifacts.append_jsonl(row, *success_parts)
+                            successes.append(row)
+                        else:
+                            artifacts.append_jsonl(row, *error_parts)
+                            errors.append(row)
+                        completed_count += 1
+                        progress.update()
+                        if completed_count % 100 == 0:
+                            _write_report(
+                                artifacts,
+                                len(corpus),
+                                successes,
+                                errors,
+                                started_at,
+                                cache.stats(),
+                            )
+                        submit_next()
     finally:
         report = _write_report(artifacts, len(corpus), successes, errors, started_at, cache.stats())
         cache.close()
