@@ -118,10 +118,12 @@ Raw download outputs:
 Convert raw JSONL into the project format:
 
 ```bash
-python scripts/convert_dataset.py --dataset hotpotqa --input data/raw/hotpotqa/hotpotqa_distractor_validation.jsonl --output-dir data/processed/hotpotqa_distractor_validation
-python scripts/convert_dataset.py --dataset twowiki --input data/raw/twowiki/twowiki_validation.jsonl --output-dir data/processed/twowiki_validation
-python scripts/convert_dataset.py --dataset musique --input data/raw/musique/musique_validation.jsonl --output-dir data/processed/musique_validation
+python scripts/convert_dataset.py --dataset hotpotqa --input data/raw/hotpotqa/hotpotqa_distractor_validation.jsonl --output-dir data/processed/hotpotqa_distractor_validation --overwrite
+python scripts/convert_dataset.py --dataset twowiki --input data/raw/twowiki/twowiki_validation.jsonl --output-dir data/processed/twowiki_validation --overwrite
+python scripts/convert_dataset.py --dataset musique --input data/raw/musique/musique_validation.jsonl --output-dir data/processed/musique_validation --overwrite
 ```
+
+Conversion uses the first 1000 examples by default. Use `--max-examples` to change that experimental subset size.
 
 Conversion outputs:
 

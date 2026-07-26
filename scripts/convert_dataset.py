@@ -18,10 +18,17 @@ def main() -> None:
     parser.add_argument("--dataset", choices=["hotpotqa", "twowiki", "musique"], required=True)
     parser.add_argument("--input", required=True)
     parser.add_argument("--output-dir", required=True)
+    parser.add_argument("--max-examples", type=int, default=1000)
     parser.add_argument("--overwrite", action="store_true")
     args = parser.parse_args()
 
-    report = convert_dataset(args.dataset, args.input, args.output_dir, overwrite=args.overwrite)
+    report = convert_dataset(
+        args.dataset,
+        args.input,
+        args.output_dir,
+        overwrite=args.overwrite,
+        max_examples=args.max_examples,
+    )
     print(json.dumps(report, ensure_ascii=False, indent=2))
 
 

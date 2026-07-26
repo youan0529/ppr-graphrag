@@ -107,6 +107,7 @@ def _write_outputs(
     missing_support_docs: list[dict[str, Any]],
     preview: dict[str, Any],
     overwrite: bool,
+    max_examples: int | None,
 ) -> dict[str, Any]:
     corpus_path, queries_path, report_path, preview_path = _check_outputs(output_dir, overwrite)
     write_jsonl(corpus_path, list(corpus.values()))
@@ -122,6 +123,7 @@ def _write_outputs(
         "queries_path": str(queries_path),
         "preview_path": str(preview_path),
         "num_raw_examples": num_raw_examples,
+        "max_examples": max_examples,
         "num_documents": len(corpus),
         "num_queries": len(queries),
         "num_doc_conflicts": len(doc_conflicts),
@@ -149,8 +151,13 @@ def _add_doc(
     corpus[doc["doc_id"]] = doc
 
 
-def convert_hotpotqa(input_path: str | Path, output_dir: str | Path, overwrite: bool = False) -> dict[str, Any]:
-    rows = read_jsonl(input_path)
+def convert_hotpotqa(
+    input_path: str | Path,
+    output_dir: str | Path,
+    overwrite: bool = False,
+    max_examples: int | None = 1000,
+) -> dict[str, Any]:
+    rows = read_jsonl(input_path)[:max_examples]
     corpus: dict[str, dict[str, Any]] = {}
     queries = []
     doc_conflicts: list[dict[str, Any]] = []
@@ -254,11 +261,17 @@ def convert_hotpotqa(input_path: str | Path, output_dir: str | Path, overwrite: 
         missing_support_docs,
         preview,
         overwrite,
+        max_examples,
     )
 
 
-def convert_twowiki(input_path: str | Path, output_dir: str | Path, overwrite: bool = False) -> dict[str, Any]:
-    rows = read_jsonl(input_path)
+def convert_twowiki(
+    input_path: str | Path,
+    output_dir: str | Path,
+    overwrite: bool = False,
+    max_examples: int | None = 1000,
+) -> dict[str, Any]:
+    rows = read_jsonl(input_path)[:max_examples]
     corpus: dict[str, dict[str, Any]] = {}
     queries = []
     doc_conflicts: list[dict[str, Any]] = []
@@ -362,11 +375,17 @@ def convert_twowiki(input_path: str | Path, output_dir: str | Path, overwrite: b
         missing_support_docs,
         preview,
         overwrite,
+        max_examples,
     )
 
 
-def convert_musique(input_path: str | Path, output_dir: str | Path, overwrite: bool = False) -> dict[str, Any]:
-    rows = read_jsonl(input_path)
+def convert_musique(
+    input_path: str | Path,
+    output_dir: str | Path,
+    overwrite: bool = False,
+    max_examples: int | None = 1000,
+) -> dict[str, Any]:
+    rows = read_jsonl(input_path)[:max_examples]
     corpus: dict[str, dict[str, Any]] = {}
     queries = []
     doc_conflicts: list[dict[str, Any]] = []
@@ -485,14 +504,21 @@ def convert_musique(input_path: str | Path, output_dir: str | Path, overwrite: b
         missing_support_docs,
         preview,
         overwrite,
+        max_examples,
     )
 
 
-def convert_dataset(dataset: str, input_path: str | Path, output_dir: str | Path, overwrite: bool = False) -> dict[str, Any]:
+def convert_dataset(
+    dataset: str,
+    input_path: str | Path,
+    output_dir: str | Path,
+    overwrite: bool = False,
+    max_examples: int | None = 1000,
+) -> dict[str, Any]:
     if dataset == "hotpotqa":
-        return convert_hotpotqa(input_path, output_dir, overwrite)
+        return convert_hotpotqa(input_path, output_dir, overwrite, max_examples)
     if dataset == "twowiki":
-        return convert_twowiki(input_path, output_dir, overwrite)
+        return convert_twowiki(input_path, output_dir, overwrite, max_examples)
     if dataset == "musique":
-        return convert_musique(input_path, output_dir, overwrite)
+        return convert_musique(input_path, output_dir, overwrite, max_examples)
     raise ValueError(f"Unknown dataset: {dataset}. Valid choices: hotpotqa, twowiki, musique")
