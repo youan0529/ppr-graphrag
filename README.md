@@ -2,7 +2,7 @@
 
 Minimal runnable skeleton for GraphRAG / Personalized PageRank RAG research.
 
-The goal is a clean research framework, not a full HippoRAG reimplementation. The first stage focuses on reusable engineering pieces: unified config, JSONL data loading, LLM and embedding caches, experiment artifacts, resumable runs, and retriever interfaces.
+The goal is a clean research framework, not a full HippoRAG reimplementation. The current research path extracts passage-local Facts and typed mentions, then materializes an undirected Fact-Entity graph for later PPR retrieval experiments.
 
 ## Install
 
@@ -70,7 +70,7 @@ llm:
   model: gpt-oss:20b
 ```
 
-These values are config-driven and are not hard-coded in the client. Business logic should wrap provider clients with `CachedLLM` so cache keys include provider, base URL, model, messages, temperature, max tokens, seed, response format, and kwargs.
+These values are config-driven and are not hard-coded in the client. Business logic wraps provider clients with `CachedLLM`. For this experiment, the LLM cache key intentionally uses only the model and messages; generation settings are treated as the same experiment result.
 
 ## Caching, Artifacts, Resume
 
@@ -87,6 +87,8 @@ experiments/<run_name>/
 ```
 
 LLM and embedding caches use SQLite with WAL mode. JSON artifacts use atomic write. Retrieval results are appended to `artifacts/retrieval_results.jsonl` after every query, so interrupted runs can resume from completed `query_id`s when `resume.resume_retrieval` is enabled.
+
+Fact extraction also appends each completed passage immediately. A resumed run skips passage IDs already recorded in either `raw_extractions.jsonl` or `extraction_errors.jsonl`.
 
 ## Retrieval
 
@@ -134,11 +136,31 @@ Conversion outputs:
 
 HotpotQA and 2Wiki use title/page-level docs; sentences are joined into `text` and preserved in metadata. MuSiQue uses paragraph-level docs and preserves `question_decomposition` in metadata. `data/raw/` and `data/processed/` are ignored by git and should not be committed.
 
+## Fact-Entity Graph
+
+`configs/hotpotqa.yaml` uses the processed first-1000-query HotpotQA corpus. Start the configured Ollama endpoints with a 4096-token context, then run:
+
+```bash
+python scripts/extract_facts.py --config configs/hotpotqa.yaml
+python scripts/build_graph.py --config configs/hotpotqa.yaml
+```
+
+Extraction is passage-local and cached. It writes successful and failed passages as they finish, so the first command can be resumed directly. The HotpotQA config distributes 16 concurrent requests across two OpenAI-compatible endpoints; use one `base_url` and a smaller `graph.extraction_workers` value when only one endpoint is available.
+
+Graph outputs are stored under `experiments/hotpotqa_graph_v1/artifacts/graph/`:
+
+- `entities.jsonl`: exact normalized mention groups for referent and category entities
+- `facts.jsonl`: self-contained facts, passage provenance, and all typed mentions
+- `edges.jsonl`: Fact-Entity edges and same-type semantic Entity-Entity edges
+- `entity_embeddings.npy`: normalized NV-Embed-v2 entity-name embeddings
+- `graph.pkl`: the undirected NetworkX graph
+- `graph_report.json`: extraction, entity, edge, component, and timing statistics
+
+Entity semantic edges use FAISS radius search with cosine similarity at least `0.8`. Relation text remains a Fact attribute in this first version.
+
 ## Future Plan
 
-- OpenIE extraction
-- Entity graph construction
-- Fact graph construction
-- PPR variants and ablations
+- Query-to-Fact and Query-to-Entity personalization
+- PPR over the Fact-Entity graph
+- Extraction and graph ablations
 - GraphRAG baseline integrations
-- Dataset converters for HotpotQA, 2WikiMultiHopQA, and MuSiQue

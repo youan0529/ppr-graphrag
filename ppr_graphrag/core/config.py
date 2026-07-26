@@ -22,10 +22,12 @@ class LLMConfig:
     provider: str = "openai_compatible"
     model: str = "gpt-oss:20b"
     base_url: str = "http://localhost:11434/v1"
+    base_urls: list[str] = field(default_factory=list)
     api_key: str = "ollama"
     temperature: float = 0.0
     max_tokens: int = 512
     timeout: float = 120.0
+    reasoning_effort: str = "low"
     cache_enabled: bool = True
     cache_path: str = "cache/llm.sqlite"
 
@@ -54,6 +56,9 @@ class GraphConfig:
     graph_path: str = "artifacts/graph.pkl"
     directed: bool = False
     add_self_loops: bool = False
+    extraction_prompt_path: str = "prompts/extract_passage.md"
+    extraction_workers: int = 1
+    entity_similarity_threshold: float = 0.8
 
 
 @dataclass

@@ -26,10 +26,10 @@ def test_cached_llm_hits_cache(tmp_path) -> None:
     assert llm.calls == 1
 
 
-def test_cached_llm_key_includes_generation_params(tmp_path) -> None:
+def test_cached_llm_reuses_model_and_messages_across_generation_params(tmp_path) -> None:
     llm = DummyLLM()
     cached = CachedLLM(llm, SQLiteCache(tmp_path / "llm.sqlite"), LLMConfig())
     messages = [{"role": "user", "content": "hello"}]
     cached.generate(messages, temperature=0.0)
     cached.generate(messages, temperature=0.7)
-    assert llm.calls == 2
+    assert llm.calls == 1

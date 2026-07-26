@@ -1,6 +1,6 @@
 experiment:
   project_name: ppr_graphrag
-  run_name: default
+  run_name: hotpotqa_graph_v1
   seed: 13
   output_dir: experiments
 
@@ -8,41 +8,43 @@ llm:
   provider: openai_compatible
   model: gpt-oss:20b
   base_url: http://localhost:11434/v1
-  base_urls: []
+  base_urls:
+    - http://localhost:11434/v1
+    - http://localhost:11435/v1
   api_key: ollama
   temperature: 0.0
-  max_tokens: 512
-  timeout: 120.0
+  max_tokens: 2048
+  timeout: 600.0
   reasoning_effort: low
   cache_enabled: true
   cache_path: cache/llm.sqlite
 
 embedding:
-  provider: sentence_transformers
-  model_name_or_path: sentence-transformers/all-MiniLM-L6-v2
+  provider: nv_embed_v2
+  model_name_or_path: nvidia/NV-Embed-v2
   device: null
-  batch_size: 32
+  batch_size: 16
   normalize: true
   cache_enabled: true
   cache_path: cache/embedding.sqlite
 
 data:
-  corpus_path: data/toy/corpus.jsonl
-  queries_path: data/toy/queries.jsonl
+  corpus_path: data/processed/hotpotqa_distractor_validation/corpus.jsonl
+  queries_path: data/processed/hotpotqa_distractor_validation/queries.jsonl
   chunk_size: 512
   chunk_overlap: 64
 
 graph:
-  graph_path: artifacts/graph.pkl
+  graph_path: artifacts/graph/graph.pkl
   directed: false
   add_self_loops: false
   extraction_prompt_path: prompts/extract_passage.md
-  extraction_workers: 1
+  extraction_workers: 16
   entity_similarity_threshold: 0.8
 
 retrieval:
-  method: bm25
-  top_k: 3
+  method: ppr
+  top_k: 10
   ppr_alpha: 0.85
   ppr_max_iter: 100
   ppr_tol: 1.0e-6

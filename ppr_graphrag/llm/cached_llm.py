@@ -19,15 +19,8 @@ class CachedLLM:
 
     def _key(self, messages: list[dict[str, Any]], kwargs: dict[str, Any]) -> str:
         request = {
-            "provider": self.config.provider,
-            "base_url": self.config.base_url,
             "model": kwargs.get("model", self.config.model),
             "messages": messages,
-            "temperature": kwargs.get("temperature", self.config.temperature),
-            "max_tokens": kwargs.get("max_tokens", self.config.max_tokens),
-            "seed": kwargs.get("seed"),
-            "response_format": kwargs.get("response_format"),
-            "kwargs": kwargs,
         }
         return make_id("llm", request)
 

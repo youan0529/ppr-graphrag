@@ -8,10 +8,12 @@ llm:
   provider: openai_compatible
   model: gpt-oss:20b
   base_url: http://localhost:11434/v1
+  base_urls: []
   api_key: ollama
   temperature: 0.0
   max_tokens: 256
   timeout: 120.0
+  reasoning_effort: low
   cache_enabled: true
   cache_path: cache/llm.sqlite
 
@@ -34,6 +36,9 @@ graph:
   graph_path: artifacts/graph.pkl
   directed: false
   add_self_loops: false
+  extraction_prompt_path: prompts/extract_passage.md
+  extraction_workers: 1
+  entity_similarity_threshold: 0.8
 
 retrieval:
   method: bm25
