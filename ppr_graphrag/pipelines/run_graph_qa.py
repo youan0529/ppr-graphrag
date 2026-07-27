@@ -114,7 +114,7 @@ def _report(
     queries: list[Query],
     answers: list[dict[str, Any]],
     errors: list[dict[str, Any]],
-    started_at: float,
+    elapsed_seconds: float,
     cache_stats: dict[str, Any],
     previous_elapsed_seconds: float = 0.0,
 ) -> dict[str, Any]:
@@ -130,7 +130,7 @@ def _report(
         "exact_match": sum(row["exact_match"] for row in scored) / len(scored) if scored else 0.0,
         "f1": sum(row["f1"] for row in scored) / len(scored) if scored else 0.0,
         "unknown_predictions": sum(row["predicted_answer"].lower() == "unknown" for row in answers),
-        "elapsed_seconds": round(previous_elapsed_seconds + time.perf_counter() - started_at, 3),
+        "elapsed_seconds": round(previous_elapsed_seconds + elapsed_seconds, 3),
         "cache": cache_stats,
     }
 
@@ -228,7 +228,7 @@ def run_graph_qa(
             queries,
             answers,
             errors,
-            started_at,
+            time.perf_counter() - started_at if pending else 0.0,
             cache.stats(),
             previous_elapsed_seconds,
         )
