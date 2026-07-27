@@ -65,6 +65,11 @@ class GraphConfig:
 class RetrievalConfig:
     method: str = "bm25"
     top_k: int = 5
+    dense_candidate_k: int = 100
+    ppr_fact_seed_k: int = 20
+    ppr_entity_seed_k: int = 10
+    entity_seed_threshold: float = 0.5
+    fact_seed_weight: float = 0.8
     ppr_alpha: float = 0.85
     ppr_max_iter: int = 100
     ppr_tol: float = 1e-6

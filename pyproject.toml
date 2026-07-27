@@ -12,6 +12,7 @@ dependencies = [
   "pyyaml",
   "datasets",
   "numpy",
+  "scipy",
   "pandas",
   "networkx",
   "openai",

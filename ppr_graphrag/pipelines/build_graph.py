@@ -174,6 +174,8 @@ def build_fact_entity_graph(
         "edges.jsonl",
         "entity_embeddings.npy",
         "entity_embeddings_meta.json",
+        "fact_embeddings.npy",
+        "fact_embeddings_meta.json",
         "graph.pkl",
         "graph_report.json",
     )
@@ -266,7 +268,8 @@ def build_fact_entity_graph(
     embedding_started = time.perf_counter()
     try:
         embedder = CachedVectorEmbedder(NVEmbedV2Embedder(config.embedding), cache, config.embedding)
-        embeddings = embedder.embed_texts([entity["entity_name"] for entity in entities])
+        entity_embeddings = embedder.embed_texts([entity["entity_name"] for entity in entities])
+        fact_embeddings = embedder.embed_texts([fact["text"] for fact in facts])
         embedding_cache_stats = cache.stats()
     finally:
         cache.close()
@@ -274,7 +277,7 @@ def build_fact_entity_graph(
 
     semantic_edges = _entity_similarity_edges(
         entities,
-        embeddings,
+        entity_embeddings,
         config.graph.entity_similarity_threshold,
     )
     edges = sorted(
@@ -310,16 +313,26 @@ def build_fact_entity_graph(
     _write_jsonl_atomic(graph_dir / "entities.jsonl", entities)
     _write_jsonl_atomic(graph_dir / "facts.jsonl", facts)
     _write_jsonl_atomic(graph_dir / "edges.jsonl", edges)
-    _save_npy_atomic(graph_dir / "entity_embeddings.npy", embeddings)
-    embedding_meta = {
+    _save_npy_atomic(graph_dir / "entity_embeddings.npy", entity_embeddings)
+    _save_npy_atomic(graph_dir / "fact_embeddings.npy", fact_embeddings)
+    entity_embedding_meta = {
         "model": config.embedding.model_name_or_path,
         "entity_ids": [entity["entity_id"] for entity in entities],
-        "shape": list(embeddings.shape),
-        "dtype": str(embeddings.dtype),
+        "shape": list(entity_embeddings.shape),
+        "dtype": str(entity_embeddings.dtype),
         "normalized": config.embedding.normalize,
         "cache": embedding_cache_stats,
     }
-    artifacts.save_json_atomic(embedding_meta, *GRAPH_PARTS, "entity_embeddings_meta.json")
+    fact_embedding_meta = {
+        "model": config.embedding.model_name_or_path,
+        "fact_ids": [fact["fact_id"] for fact in facts],
+        "shape": list(fact_embeddings.shape),
+        "dtype": str(fact_embeddings.dtype),
+        "normalized": config.embedding.normalize,
+        "cache": embedding_cache_stats,
+    }
+    artifacts.save_json_atomic(entity_embedding_meta, *GRAPH_PARTS, "entity_embeddings_meta.json")
+    artifacts.save_json_atomic(fact_embedding_meta, *GRAPH_PARTS, "fact_embeddings_meta.json")
     artifacts.save_pickle_atomic(graph, *GRAPH_PARTS, "graph.pkl")
     elapsed = {
         "embedding": round(embedding_elapsed, 3),
@@ -336,7 +349,8 @@ def build_fact_entity_graph(
         mention_type_counts,
         {
             "model": config.embedding.model_name_or_path,
-            "dimension": embeddings.shape[1] if embeddings.size else 0,
+            "entity_shape": list(entity_embeddings.shape),
+            "fact_shape": list(fact_embeddings.shape),
             "similarity_threshold": config.graph.entity_similarity_threshold,
             "cache": embedding_cache_stats,
         },

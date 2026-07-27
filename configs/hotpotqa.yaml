@@ -43,11 +43,16 @@ graph:
   entity_similarity_threshold: 0.8
 
 retrieval:
-  method: ppr
-  top_k: 10
+  method: graph_ppr
+  top_k: 20
+  dense_candidate_k: 100
+  ppr_fact_seed_k: 20
+  ppr_entity_seed_k: 10
+  entity_seed_threshold: 0.5
+  fact_seed_weight: 0.8
   ppr_alpha: 0.85
   ppr_max_iter: 100
-  ppr_tol: 1.0e-6
+  ppr_tol: 1.0e-8
 
 resume:
   resume_index: true
