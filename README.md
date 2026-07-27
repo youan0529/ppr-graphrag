@@ -153,14 +153,34 @@ Graph outputs are stored under `experiments/hotpotqa_graph_v1/artifacts/graph/`:
 - `facts.jsonl`: self-contained facts, passage provenance, and all typed mentions
 - `edges.jsonl`: Fact-Entity edges and same-type semantic Entity-Entity edges
 - `entity_embeddings.npy`: normalized NV-Embed-v2 entity-name embeddings
+- `fact_embeddings.npy`: normalized NV-Embed-v2 Fact-text embeddings
 - `graph.pkl`: the undirected NetworkX graph
 - `graph_report.json`: extraction, entity, edge, component, and timing statistics
 
 Entity semantic edges use FAISS radius search with cosine similarity at least `0.8`. Relation text remains a Fact attribute in this first version.
 
+Run the graph retrieval baselines after building the graph:
+
+```bash
+python scripts/run_graph_retrieval.py --config configs/hotpotqa.yaml --method dense
+python scripts/run_graph_retrieval.py --config configs/hotpotqa.yaml --method ppr
+```
+
+`dense` retrieves Fact texts with the query embedding and maps the highest-scoring Facts back to their source
+Passages. `ppr` combines Query-Fact and Query-Entity seeds, runs weighted PPR on the Fact-Entity graph, and ranks
+Passages by their highest-scoring Fact.
+
+Each query is appended immediately under `artifacts/graph_retrieval/`. Dense traces preserve Fact candidates. PPR
+traces preserve Fact seeds, Entity seeds, top propagated Facts, convergence state, and iteration count. Metrics at
+2/5/10/20 are written under `metrics/`. Re-running the same command resumes from completed query IDs; use
+`--overwrite` to start that method again.
+
+The original `retrieval/ppr_retriever.py` remains the small Passage/token-overlap toy implementation. Graph retrieval
+uses `retrieval/fact_entity_retriever.py` and does not silently change the toy pipeline.
+
 ## Future Plan
 
-- Query-to-Fact and Query-to-Entity personalization
-- PPR over the Fact-Entity graph
-- Extraction and graph ablations
+- Query seed and PPR parameter ablations
+- Reader/answer generation over retrieved Passages
+- End-to-end answer metrics
 - GraphRAG baseline integrations
