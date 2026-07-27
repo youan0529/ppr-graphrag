@@ -76,6 +76,15 @@ class RetrievalConfig:
 
 
 @dataclass
+class QAConfig:
+    prompt_path: str = "prompts/answer_question.md"
+    retrieval_top_k: int = 5
+    workers: int = 1
+    max_tokens: int = 64
+    base_urls: list[str] = field(default_factory=list)
+
+
+@dataclass
 class ResumeConfig:
     resume_index: bool = True
     resume_retrieval: bool = True
@@ -91,6 +100,7 @@ class AppConfig:
     data: DataConfig = field(default_factory=DataConfig)
     graph: GraphConfig = field(default_factory=GraphConfig)
     retrieval: RetrievalConfig = field(default_factory=RetrievalConfig)
+    qa: QAConfig = field(default_factory=QAConfig)
     resume: ResumeConfig = field(default_factory=ResumeConfig)
 
 

@@ -175,12 +175,22 @@ traces preserve Fact seeds, Entity seeds, top propagated Facts, convergence stat
 2/5/10/20 are written under `metrics/`. Re-running the same command resumes from completed query IDs; use
 `--overwrite` to start that method again.
 
+Answer the questions from the saved top-5 Passages:
+
+```bash
+python scripts/run_graph_qa.py --config configs/hotpotqa.yaml --method dense
+python scripts/run_graph_qa.py --config configs/hotpotqa.yaml --method ppr
+```
+
+The reader uses the configured OpenAI-compatible LLM and SQLite cache. Each completed answer is appended immediately
+under `artifacts/qa/`, including its retrieved contexts, raw response, parsed answer, and per-query score. Aggregate
+exact match and token F1 are written under `metrics/`. Re-running resumes missing answers; use `--overwrite` to replace
+the selected method's QA outputs.
+
 The original `retrieval/ppr_retriever.py` remains the small Passage/token-overlap toy implementation. Graph retrieval
 uses `retrieval/fact_entity_retriever.py` and does not silently change the toy pipeline.
 
 ## Future Plan
 
 - Query seed and PPR parameter ablations
-- Reader/answer generation over retrieved Passages
-- End-to-end answer metrics
 - GraphRAG baseline integrations
