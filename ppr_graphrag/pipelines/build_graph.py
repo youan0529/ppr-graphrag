@@ -218,7 +218,15 @@ def build_fact_entity_graph(
     for passage in extraction_rows:
         for raw_fact in passage["facts"]:
             fact_text = normalize_fact_text(raw_fact["text"])
-            fact_id = _stable_id("F", {"passage_id": passage["passage_id"], "text": fact_text})
+            relation = normalize_fact_text(raw_fact["relation"])
+            fact_id = _stable_id(
+                "F",
+                {
+                    "passage_id": passage["passage_id"],
+                    "text": fact_text,
+                    "relation": relation,
+                },
+            )
             mentions = []
             linked_entities = set()
             for raw_mention in raw_fact["mentions"]:
@@ -237,7 +245,7 @@ def build_fact_entity_graph(
                 {
                     "fact_id": fact_id,
                     "text": fact_text,
-                    "relation": normalize_fact_text(raw_fact["relation"]),
+                    "relation": relation,
                     "passage_id": passage["passage_id"],
                     "mentions": mentions,
                 }
