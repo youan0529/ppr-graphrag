@@ -190,6 +190,24 @@ the selected method's QA outputs.
 The original `retrieval/ppr_retriever.py` remains the small Passage/token-overlap toy implementation. Graph retrieval
 uses `retrieval/fact_entity_retriever.py` and does not silently change the toy pipeline.
 
+Use the same pipeline for the processed 2Wiki and MuSiQue subsets by replacing the config:
+
+```bash
+python scripts/extract_facts.py --config configs/twowiki.yaml
+python scripts/build_graph.py --config configs/twowiki.yaml
+python scripts/run_graph_retrieval.py --config configs/twowiki.yaml --method dense
+python scripts/run_graph_retrieval.py --config configs/twowiki.yaml --method ppr
+python scripts/run_graph_qa.py --config configs/twowiki.yaml --method dense
+python scripts/run_graph_qa.py --config configs/twowiki.yaml --method ppr
+
+python scripts/extract_facts.py --config configs/musique.yaml
+python scripts/build_graph.py --config configs/musique.yaml
+python scripts/run_graph_retrieval.py --config configs/musique.yaml --method dense
+python scripts/run_graph_retrieval.py --config configs/musique.yaml --method ppr
+python scripts/run_graph_qa.py --config configs/musique.yaml --method dense
+python scripts/run_graph_qa.py --config configs/musique.yaml --method ppr
+```
+
 ## Future Plan
 
 - Query seed and PPR parameter ablations

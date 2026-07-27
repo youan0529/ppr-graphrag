@@ -1,0 +1,70 @@
+experiment:
+  project_name: ppr_graphrag
+  run_name: twowiki_graph_v1
+  seed: 13
+  output_dir: experiments
+
+llm:
+  provider: openai_compatible
+  model: gpt-oss:20b
+  base_url: http://localhost:11434/v1
+  base_urls:
+    - http://localhost:11434/v1
+    - http://localhost:11435/v1
+  api_key: ollama
+  temperature: 0.0
+  max_tokens: 2048
+  timeout: 600.0
+  reasoning_effort: low
+  cache_enabled: true
+  cache_path: cache/llm.sqlite
+
+embedding:
+  provider: nv_embed_v2
+  model_name_or_path: nvidia/NV-Embed-v2
+  device: null
+  batch_size: 16
+  normalize: true
+  cache_enabled: true
+  cache_path: cache/embedding.sqlite
+
+data:
+  corpus_path: data/processed/twowiki_validation/corpus.jsonl
+  queries_path: data/processed/twowiki_validation/queries.jsonl
+  chunk_size: 512
+  chunk_overlap: 64
+
+graph:
+  graph_path: artifacts/graph/graph.pkl
+  directed: false
+  add_self_loops: false
+  extraction_prompt_path: prompts/extract_passage.md
+  extraction_workers: 16
+  entity_similarity_threshold: 0.8
+
+retrieval:
+  method: graph_ppr
+  top_k: 20
+  dense_candidate_k: 100
+  ppr_fact_seed_k: 20
+  ppr_entity_seed_k: 10
+  entity_seed_threshold: 0.5
+  fact_seed_weight: 0.8
+  ppr_alpha: 0.65
+  ppr_max_iter: 100
+  ppr_tol: 1.0e-8
+
+qa:
+  prompt_path: prompts/answer_question.md
+  retrieval_top_k: 5
+  workers: 16
+  max_tokens: 512
+  base_urls:
+    - http://localhost:11434/v1
+    - http://localhost:11435/v1
+
+resume:
+  resume_index: true
+  resume_retrieval: true
+  force_rebuild_index: false
+  force_retrieve: false
