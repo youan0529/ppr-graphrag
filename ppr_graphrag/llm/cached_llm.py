@@ -34,6 +34,7 @@ class CachedLLM:
         response = self.llm.generate(messages, **kwargs)
         payload = asdict(response)
         payload.pop("cache_hit", None)
-        self.cache.set(key, payload, metadata={"model": self.config.model})
+        if response.text.strip():
+            self.cache.set(key, payload, metadata={"model": self.config.model})
         response.cache_hit = False
         return response

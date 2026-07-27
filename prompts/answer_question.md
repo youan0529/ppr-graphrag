@@ -9,4 +9,4 @@ Return only JSON with this exact shape:
 
 {"answer":"..."}
 
-Do not include an explanation, citations, markdown, or additional fields.
+The answer value must be non-empty. Do not include an explanation, citations, markdown, or additional fields.
