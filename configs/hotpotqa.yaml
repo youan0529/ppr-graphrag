@@ -58,7 +58,7 @@ qa:
   prompt_path: prompts/answer_question.md
   retrieval_top_k: 5
   workers: 8
-  max_tokens: 64
+  max_tokens: 256
   base_urls:
     - http://localhost:11434/v1
 
