@@ -56,6 +56,22 @@ class SQLiteVectorCache:
             )
             self.conn.commit()
 
+    def set_many(self, items: list[tuple[str, np.ndarray]]) -> None:
+        rows = []
+        created_at = time.time()
+        for key, vector in items:
+            array = np.asarray(vector, dtype=np.float32).reshape(-1)
+            rows.append((key, array.tobytes(), array.size, created_at))
+        with self._lock:
+            self.conn.executemany(
+                """
+                INSERT OR REPLACE INTO embedding_vectors(key, vector, dim, created_at)
+                VALUES (?, ?, ?, ?)
+                """,
+                rows,
+            )
+            self.conn.commit()
+
     def stats(self) -> dict[str, int | str]:
         with self._lock:
             count = self.conn.execute("SELECT COUNT(*) FROM embedding_vectors").fetchone()[0]
@@ -89,12 +105,17 @@ class CachedVectorEmbedder:
 
         if missing:
             missing_texts = list(missing)
-            computed = self.embedder.embed_texts(missing_texts)
-            for text, vector in zip(missing_texts, computed, strict=True):
-                array = np.asarray(vector, dtype=np.float32)
-                self.cache.set(self._key(text), array)
-                for index in missing[text]:
-                    vectors[index] = array
+            for start in range(0, len(missing_texts), self.config.batch_size):
+                batch = missing_texts[start : start + self.config.batch_size]
+                computed = self.embedder.embed_texts(batch)
+                cache_items = [
+                    (self._key(text), np.asarray(vector, dtype=np.float32))
+                    for text, vector in zip(batch, computed, strict=True)
+                ]
+                self.cache.set_many(cache_items)
+                for text, (_, vector) in zip(batch, cache_items, strict=True):
+                    for index in missing[text]:
+                        vectors[index] = vector
         return np.vstack([vector for vector in vectors if vector is not None])
 
     def embed_query(self, query: str) -> np.ndarray:
