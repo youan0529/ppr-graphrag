@@ -116,6 +116,7 @@ def _report(
     errors: list[dict[str, Any]],
     started_at: float,
     cache_stats: dict[str, Any],
+    previous_elapsed_seconds: float = 0.0,
 ) -> dict[str, Any]:
     scored = [row for row in answers if row["gold_answers"]]
     return {
@@ -129,7 +130,7 @@ def _report(
         "exact_match": sum(row["exact_match"] for row in scored) / len(scored) if scored else 0.0,
         "f1": sum(row["f1"] for row in scored) / len(scored) if scored else 0.0,
         "unknown_predictions": sum(row["predicted_answer"].lower() == "unknown" for row in answers),
-        "elapsed_seconds": round(time.perf_counter() - started_at, 3),
+        "elapsed_seconds": round(previous_elapsed_seconds + time.perf_counter() - started_at, 3),
         "cache": cache_stats,
     }
 
@@ -157,6 +158,8 @@ def run_graph_qa(
             artifacts.delete(*parts)
         artifacts.delete("artifacts", f"{stage_name}.done.json")
 
+    previous_report = artifacts.load_json(*metric_parts) if artifacts.exists(*metric_parts) else {}
+    previous_elapsed_seconds = float(previous_report.get("elapsed_seconds", 0.0))
     retrieval_by_query = {row["query_id"]: row for row in artifacts.load_jsonl(*retrieval_parts)}
     corpus = {document.doc_id: document for document in corpus_documents}
     answers = artifacts.load_jsonl(*answer_parts)
@@ -220,7 +223,15 @@ def run_graph_qa(
                         progress.update()
                         submit_next()
     finally:
-        report = _report(method, queries, answers, errors, started_at, cache.stats())
+        report = _report(
+            method,
+            queries,
+            answers,
+            errors,
+            started_at,
+            cache.stats(),
+            previous_elapsed_seconds,
+        )
         artifacts.save_json_atomic(report, *metric_parts)
         cache.close()
 
