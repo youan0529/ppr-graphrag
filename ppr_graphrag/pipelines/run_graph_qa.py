@@ -82,6 +82,13 @@ def _answer_query(
             reasoning_effort=config.llm.reasoning_effort,
             response_format=answer_response_format(),
         )
+        if not response.text.strip():
+            response = llm.generate(
+                _messages(prompt, query, contexts),
+                max_tokens=config.qa.max_tokens * 2,
+                reasoning_effort=config.llm.reasoning_effort,
+                response_format=answer_response_format(),
+            )
         response_text = response.text
         prediction = _parse_answer(response.text)
         return True, {
