@@ -85,7 +85,7 @@ def _answer_query(
         if not response.text.strip():
             response = llm.generate(
                 _messages(prompt, query, contexts),
-                max_tokens=config.qa.max_tokens * 2,
+                max_tokens=max(config.qa.max_tokens * 2, config.llm.max_tokens),
                 reasoning_effort=config.llm.reasoning_effort,
                 response_format=answer_response_format(),
             )
