@@ -16,24 +16,12 @@ For development:
 pip install -e ".[dev]"
 ```
 
-## Toy Run
+## Quick Data Check
 
-Generate toy data:
+Generate the small example corpus and queries used to inspect the unified data schema:
 
 ```bash
 python scripts/make_toy_data.py
-```
-
-Build an index:
-
-```bash
-python scripts/build_index.py --config configs/toy.yaml
-```
-
-Run retrieval and metrics:
-
-```bash
-python scripts/run_retrieval.py --config configs/toy.yaml
 ```
 
 Run tests:
@@ -86,20 +74,10 @@ experiments/<run_name>/
   metrics/
 ```
 
-LLM and embedding caches use SQLite with WAL mode. JSON artifacts use atomic write. Retrieval results are appended to `artifacts/retrieval_results.jsonl` after every query, so interrupted runs can resume from completed `query_id`s when `resume.resume_retrieval` is enabled.
+LLM and embedding caches use SQLite with WAL mode. JSON artifacts use atomic write. Graph retrieval and QA results
+are appended after every query, so interrupted runs resume from the saved query IDs.
 
 Fact extraction also appends each completed passage immediately. A resumed run skips passage IDs already recorded in either `raw_extractions.jsonl` or `extraction_errors.jsonl`.
-
-## Retrieval
-
-Implemented minimal retrievers:
-
-- `bm25`: uses `rank_bm25` when installed, with token-overlap fallback.
-- `dense`: uses a `BaseEmbedder`, normally `CachedEmbedder(SentenceTransformerEmbedder)`.
-- `ppr`: builds a simple NetworkX token-overlap document graph, seeds PageRank with BM25 results, and returns document nodes.
-- `hybrid`: skeleton linear score combiner.
-
-`configs/toy.yaml` defaults to `bm25` so the smoke demo can run without downloading embedding models.
 
 ## Download And Convert Datasets
 
@@ -187,8 +165,8 @@ under `artifacts/qa/`, including its retrieved contexts, raw response, parsed an
 exact match and token F1 are written under `metrics/`. Re-running resumes missing answers; use `--overwrite` to replace
 the selected method's QA outputs.
 
-The original `retrieval/ppr_retriever.py` remains the small Passage/token-overlap toy implementation. Graph retrieval
-uses `retrieval/fact_entity_retriever.py` and does not silently change the toy pipeline.
+Graph retrieval is implemented in `retrieval/fact_entity_retriever.py`; the earlier Passage-level toy retrievers have
+been removed so that the repository follows one retrieval path.
 
 Use the same pipeline for the processed 2Wiki and MuSiQue subsets by replacing the config:
 

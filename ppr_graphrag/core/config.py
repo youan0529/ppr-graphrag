@@ -34,8 +34,8 @@ class LLMConfig:
 
 @dataclass
 class EmbeddingConfig:
-    provider: str = "sentence_transformers"
-    model_name_or_path: str = "sentence-transformers/all-MiniLM-L6-v2"
+    provider: str = "nv_embed_v2"
+    model_name_or_path: str = "nvidia/NV-Embed-v2"
     device: str | None = None
     batch_size: int = 32
     normalize: bool = True
@@ -53,9 +53,6 @@ class DataConfig:
 
 @dataclass
 class GraphConfig:
-    graph_path: str = "artifacts/graph.pkl"
-    directed: bool = False
-    add_self_loops: bool = False
     extraction_prompt_path: str = "prompts/extract_passage.md"
     extraction_workers: int = 1
     entity_similarity_threshold: float = 0.8
@@ -63,7 +60,6 @@ class GraphConfig:
 
 @dataclass
 class RetrievalConfig:
-    method: str = "bm25"
     top_k: int = 5
     dense_candidate_k: int = 100
     ppr_fact_seed_k: int = 20
@@ -85,14 +81,6 @@ class QAConfig:
 
 
 @dataclass
-class ResumeConfig:
-    resume_index: bool = True
-    resume_retrieval: bool = True
-    force_rebuild_index: bool = False
-    force_retrieve: bool = False
-
-
-@dataclass
 class AppConfig:
     experiment: ExperimentConfig = field(default_factory=ExperimentConfig)
     llm: LLMConfig = field(default_factory=LLMConfig)
@@ -101,7 +89,6 @@ class AppConfig:
     graph: GraphConfig = field(default_factory=GraphConfig)
     retrieval: RetrievalConfig = field(default_factory=RetrievalConfig)
     qa: QAConfig = field(default_factory=QAConfig)
-    resume: ResumeConfig = field(default_factory=ResumeConfig)
 
 
 T = TypeVar("T")

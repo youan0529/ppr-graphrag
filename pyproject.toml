@@ -13,13 +13,13 @@ dependencies = [
   "datasets",
   "numpy",
   "scipy",
-  "pandas",
   "networkx",
   "openai",
   "tqdm",
-  "scikit-learn",
-  "rank-bm25",
-  "sentence-transformers",
+  "torch",
+  "transformers",
+  "accelerate",
+  "einops",
   "faiss-cpu",
 ]
 

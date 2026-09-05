@@ -10,6 +10,13 @@ from typing import Any
 
 import yaml
 
+from ppr_graphrag.core.config import AppConfig
+
+
+def experiment_output_dir(config: AppConfig) -> Path:
+    """Return the output directory for one configured experiment run."""
+    return Path(config.experiment.output_dir) / config.experiment.run_name
+
 
 class ArtifactManager:
     """Manage files under a single experiment run directory."""

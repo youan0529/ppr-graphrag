@@ -35,15 +35,11 @@ data:
   chunk_overlap: 64
 
 graph:
-  graph_path: artifacts/graph/graph.pkl
-  directed: false
-  add_self_loops: false
   extraction_prompt_path: prompts/extract_passage.md
   extraction_workers: 16
   entity_similarity_threshold: 0.8
 
 retrieval:
-  method: graph_ppr
   top_k: 20
   dense_candidate_k: 100
   ppr_fact_seed_k: 20
@@ -61,9 +57,3 @@ qa:
   max_tokens: 512
   base_urls:
     - http://localhost:11434/v1
-
-resume:
-  resume_index: true
-  resume_retrieval: true
-  force_rebuild_index: false
-  force_retrieve: false

@@ -10,11 +10,10 @@ import sys
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
-from ppr_graphrag.core.artifacts import ArtifactManager
+from ppr_graphrag.core.artifacts import ArtifactManager, experiment_output_dir
 from ppr_graphrag.core.config import load_config
 from ppr_graphrag.core.logging import setup_logging
 from ppr_graphrag.data.jsonl_loader import load_corpus, load_queries
-from ppr_graphrag.pipelines.build_index import run_dir
 from ppr_graphrag.pipelines.run_graph_qa import run_graph_qa
 
 
@@ -26,7 +25,7 @@ def main() -> None:
     args = parser.parse_args()
 
     config = load_config(args.config)
-    artifacts = ArtifactManager(run_dir(config))
+    artifacts = ArtifactManager(experiment_output_dir(config))
     setup_logging(str(artifacts.path("logs", f"graph_qa_{args.method}.log")))
     report = run_graph_qa(
         config,
