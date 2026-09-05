@@ -24,7 +24,7 @@ class ArtifactManager:
     def __init__(self, root_dir: str | Path):
         self.root_dir = Path(root_dir)
         self.root_dir.mkdir(parents=True, exist_ok=True)
-        for subdir in ("cache", "artifacts", "logs", "metrics"):
+        for subdir in ("artifacts", "logs", "metrics"):
             (self.root_dir / subdir).mkdir(exist_ok=True)
 
     def path(self, *parts: str) -> Path:
