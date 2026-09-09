@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 from dataclasses import asdict
-from typing import Any
+from typing import Any, Mapping
 
 import faiss
 import networkx as nx
@@ -19,6 +19,36 @@ from ppr_graphrag.retrieval.base import RetrievalResult
 
 
 GRAPH_PARTS = ("artifacts", "graph")
+
+
+def build_ppr_personalization(
+    node_index: Mapping[str, int],
+    node_count: int,
+    fact_seeds: list[tuple[str, float]],
+    entity_seeds: list[tuple[str, float]],
+    fact_seed_weight: float,
+) -> np.ndarray:
+    def normalized_weights(seeds: list[tuple[str, float]]) -> np.ndarray:
+        weights = np.asarray([max(score, 0.0) for _, score in seeds], dtype=np.float64)
+        if not weights.size:
+            return weights
+        total = weights.sum()
+        return weights / total if total > 0 else np.full(weights.shape, 1.0 / len(weights))
+
+    personalization = np.zeros(node_count, dtype=np.float64)
+    fact_mix = min(max(fact_seed_weight, 0.0), 1.0)
+    if not entity_seeds:
+        fact_mix = 1.0
+    if not fact_seeds:
+        fact_mix = 0.0
+    for (node_id, _), weight in zip(fact_seeds, normalized_weights(fact_seeds), strict=True):
+        personalization[node_index[node_id]] += fact_mix * weight
+    for (node_id, _), weight in zip(entity_seeds, normalized_weights(entity_seeds), strict=True):
+        personalization[node_index[node_id]] += (1.0 - fact_mix) * weight
+    total = personalization.sum()
+    if total == 0:
+        raise ValueError("No Fact or Entity seeds available for PPR")
+    return personalization / total
 
 
 class FactEntityGraphRetriever:
@@ -174,32 +204,24 @@ class FactEntityGraphRetriever:
         results = self._rank_candidate_passages(query.query_id, candidates, top_k, "graph_dense")
         return results, {"fact_candidates": self._fact_trace(candidates)}
 
-    @staticmethod
-    def _normalized_weights(candidates: list[tuple[int, float]]) -> np.ndarray:
-        weights = np.asarray([max(score, 0.0) for _, score in candidates], dtype=np.float64)
-        if not weights.size:
-            return weights
-        total = weights.sum()
-        return weights / total if total > 0 else np.full(weights.shape, 1.0 / len(weights))
-
     def _personalization(
         self,
         fact_seeds: list[tuple[int, float]],
         entity_seeds: list[tuple[int, float]],
     ) -> np.ndarray:
-        personalization = np.zeros(len(self.node_ids), dtype=np.float64)
-        fact_mix = min(max(self.config.retrieval.fact_seed_weight, 0.0), 1.0)
-        if not entity_seeds:
-            fact_mix = 1.0
-        if not fact_seeds:
-            fact_mix = 0.0
-        for (index, _), weight in zip(fact_seeds, self._normalized_weights(fact_seeds), strict=True):
-            personalization[self.fact_node_indices[index]] += fact_mix * weight
-        for (index, _), weight in zip(entity_seeds, self._normalized_weights(entity_seeds), strict=True):
-            personalization[self.entity_node_indices[index]] += (1.0 - fact_mix) * weight
-        if personalization.sum() == 0:
-            raise ValueError("No Fact or Entity seeds available for PPR")
-        return personalization / personalization.sum()
+        return build_ppr_personalization(
+            self.node_index,
+            len(self.node_ids),
+            [(self.fact_ids[index], score) for index, score in fact_seeds],
+            [(self.entity_ids[index], score) for index, score in entity_seeds],
+            self.config.retrieval.fact_seed_weight,
+        )
+
+    def _personalization_trace(self, personalization: np.ndarray) -> list[dict[str, Any]]:
+        return [
+            {"node_id": self.node_ids[int(index)], "weight": float(personalization[index])}
+            for index in np.flatnonzero(personalization)
+        ]
 
     def _pagerank(self, personalization: np.ndarray) -> tuple[np.ndarray, int, bool]:
         alpha = self.config.retrieval.ppr_alpha
@@ -267,11 +289,13 @@ class FactEntityGraphRetriever:
         fact_seeds = self._search_facts(query_vector, self.config.retrieval.ppr_fact_seed_k)
         entity_seeds = self._search_entities(query_vector, self.config.retrieval.ppr_entity_seed_k)
         personalization = self._personalization(fact_seeds, entity_seeds)
+        personalization_trace = self._personalization_trace(personalization)
         node_scores, iterations, converged = self._pagerank(personalization)
         results, top_facts = self._rank_ppr_passages(query.query_id, node_scores, top_k)
         return results, {
             "fact_seeds": self._fact_trace(fact_seeds),
             "entity_seeds": self._entity_trace(entity_seeds),
+            "ppr_personalization": personalization_trace,
             "top_facts": top_facts,
             "iterations": iterations,
             "converged": converged,
