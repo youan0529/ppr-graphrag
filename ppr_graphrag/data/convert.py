@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import hashlib
 import json
+import random
 import re
 from pathlib import Path
 from typing import Any
@@ -21,6 +22,19 @@ def read_jsonl(path: str | Path) -> list[dict[str, Any]]:
             except json.JSONDecodeError as exc:
                 raise ValueError(f"Invalid JSON in {p}:{line_no}: {exc}") from exc
     return records
+
+
+def sample_rows(
+    rows: list[dict[str, Any]],
+    max_examples: int | None,
+    seed: int = 0,
+) -> list[dict[str, Any]]:
+    if max_examples is None or max_examples >= len(rows):
+        return rows
+
+    rng = random.Random(seed)
+    indices = sorted(rng.sample(range(len(rows)), max_examples))
+    return [rows[index] for index in indices]
 
 
 def write_jsonl(path: str | Path, records: list[dict[str, Any]]) -> None:
@@ -108,6 +122,7 @@ def _write_outputs(
     preview: dict[str, Any],
     overwrite: bool,
     max_examples: int | None,
+    sampling_seed: int,
 ) -> dict[str, Any]:
     corpus_path, queries_path, report_path, preview_path = _check_outputs(output_dir, overwrite)
     write_jsonl(corpus_path, list(corpus.values()))
@@ -124,6 +139,10 @@ def _write_outputs(
         "preview_path": str(preview_path),
         "num_raw_examples": num_raw_examples,
         "max_examples": max_examples,
+        "sampling_strategy": "uniform_random"
+        if max_examples is not None and max_examples < num_raw_examples
+        else "all",
+        "sampling_seed": sampling_seed,
         "num_documents": len(corpus),
         "num_queries": len(queries),
         "num_doc_conflicts": len(doc_conflicts),
@@ -156,8 +175,10 @@ def convert_hotpotqa(
     output_dir: str | Path,
     overwrite: bool = False,
     max_examples: int | None = 1000,
+    seed: int = 0,
 ) -> dict[str, Any]:
-    rows = read_jsonl(input_path)[:max_examples]
+    raw_rows = read_jsonl(input_path)
+    rows = sample_rows(raw_rows, max_examples=max_examples, seed=seed)
     corpus: dict[str, dict[str, Any]] = {}
     queries = []
     doc_conflicts: list[dict[str, Any]] = []
@@ -256,12 +277,13 @@ def convert_hotpotqa(
         output_dir,
         corpus,
         queries,
-        len(rows),
+        len(raw_rows),
         doc_conflicts,
         missing_support_docs,
         preview,
         overwrite,
         max_examples,
+        seed,
     )
 
 
@@ -270,8 +292,10 @@ def convert_twowiki(
     output_dir: str | Path,
     overwrite: bool = False,
     max_examples: int | None = 1000,
+    seed: int = 0,
 ) -> dict[str, Any]:
-    rows = read_jsonl(input_path)[:max_examples]
+    raw_rows = read_jsonl(input_path)
+    rows = sample_rows(raw_rows, max_examples=max_examples, seed=seed)
     corpus: dict[str, dict[str, Any]] = {}
     queries = []
     doc_conflicts: list[dict[str, Any]] = []
@@ -370,12 +394,13 @@ def convert_twowiki(
         output_dir,
         corpus,
         queries,
-        len(rows),
+        len(raw_rows),
         doc_conflicts,
         missing_support_docs,
         preview,
         overwrite,
         max_examples,
+        seed,
     )
 
 
@@ -384,8 +409,10 @@ def convert_musique(
     output_dir: str | Path,
     overwrite: bool = False,
     max_examples: int | None = 1000,
+    seed: int = 0,
 ) -> dict[str, Any]:
-    rows = read_jsonl(input_path)[:max_examples]
+    raw_rows = read_jsonl(input_path)
+    rows = sample_rows(raw_rows, max_examples=max_examples, seed=seed)
     corpus: dict[str, dict[str, Any]] = {}
     queries = []
     doc_conflicts: list[dict[str, Any]] = []
@@ -499,12 +526,13 @@ def convert_musique(
         output_dir,
         corpus,
         queries,
-        len(rows),
+        len(raw_rows),
         doc_conflicts,
         missing_support_docs,
         preview,
         overwrite,
         max_examples,
+        seed,
     )
 
 
@@ -514,11 +542,12 @@ def convert_dataset(
     output_dir: str | Path,
     overwrite: bool = False,
     max_examples: int | None = 1000,
+    seed: int = 0,
 ) -> dict[str, Any]:
     if dataset == "hotpotqa":
-        return convert_hotpotqa(input_path, output_dir, overwrite, max_examples)
+        return convert_hotpotqa(input_path, output_dir, overwrite, max_examples, seed)
     if dataset == "twowiki":
-        return convert_twowiki(input_path, output_dir, overwrite, max_examples)
+        return convert_twowiki(input_path, output_dir, overwrite, max_examples, seed)
     if dataset == "musique":
-        return convert_musique(input_path, output_dir, overwrite, max_examples)
+        return convert_musique(input_path, output_dir, overwrite, max_examples, seed)
     raise ValueError(f"Unknown dataset: {dataset}. Valid choices: hotpotqa, twowiki, musique")

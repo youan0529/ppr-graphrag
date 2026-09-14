@@ -19,6 +19,7 @@ def main() -> None:
     parser.add_argument("--input", required=True)
     parser.add_argument("--output-dir", required=True)
     parser.add_argument("--max-examples", type=int, default=1000)
+    parser.add_argument("--seed", type=int, default=0)
     parser.add_argument("--overwrite", action="store_true")
     args = parser.parse_args()
 
@@ -28,6 +29,7 @@ def main() -> None:
         args.output_dir,
         overwrite=args.overwrite,
         max_examples=args.max_examples,
+        seed=args.seed,
     )
     print(json.dumps(report, ensure_ascii=False, indent=2))
 

@@ -98,12 +98,12 @@ Raw download outputs:
 Convert raw JSONL into the project format:
 
 ```bash
-python scripts/convert_dataset.py --dataset hotpotqa --input data/raw/hotpotqa/hotpotqa_distractor_validation.jsonl --output-dir data/processed/hotpotqa_distractor_validation --overwrite
-python scripts/convert_dataset.py --dataset twowiki --input data/raw/twowiki/twowiki_validation.jsonl --output-dir data/processed/twowiki_validation --overwrite
-python scripts/convert_dataset.py --dataset musique --input data/raw/musique/musique_validation.jsonl --output-dir data/processed/musique_validation --overwrite
+python scripts/convert_dataset.py --dataset hotpotqa --input data/raw/hotpotqa/hotpotqa_distractor_validation.jsonl --output-dir data/processed/hotpotqa_distractor_validation --seed 0 --overwrite
+python scripts/convert_dataset.py --dataset twowiki --input data/raw/twowiki/twowiki_validation.jsonl --output-dir data/processed/twowiki_validation --seed 0 --overwrite
+python scripts/convert_dataset.py --dataset musique --input data/raw/musique/musique_validation.jsonl --output-dir data/processed/musique_validation --seed 0 --overwrite
 ```
 
-Conversion uses the first 1000 examples by default. Use `--max-examples` to change that experimental subset size.
+Conversion uniformly samples up to 1000 validation examples by default, without duplicates, using seed `0`. Use `--max-examples` to change the subset size and `--seed` to change the random seed. Selected examples retain their relative order from the raw validation file in the converted output.
 
 Conversion outputs:
 
