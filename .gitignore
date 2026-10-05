@@ -25,3 +25,14 @@ dist/
 /data/
 /experiments/*/
 !/experiments/.gitkeep
+
+# Local historical candidates and large experiment artifacts
+/prompt_candidates/
+/analysis/
+/cache/
+/models/
+/baseline_workspaces/
+/local_experiments/
+*.npy
+*.npz
+*.safetensors

@@ -1,0 +1,65 @@
+version: particle-current
+output: experiments/particle_hotpotqa/graph
+cache_path: experiments/particle_hotpotqa/graph/cache.sqlite
+corpus: data/processed/hotpotqa_distractor_validation/corpus.jsonl
+queries: data/processed/hotpotqa_distractor_validation/queries.jsonl
+seed: 13
+extraction:
+  joint_output_tokens: 6144
+  inverse_output_tokens: 4096
+  inverse_row_attempts: 2
+llm:
+  url: http://127.0.0.1:11434
+  model: gpt-oss:20b
+  digest: 17052f91a42e97930aa6e28a6c6c06a983e6a58dbb00434885a0cf5313e376f7
+  context: 16384
+  output_tokens: 4096
+  attempts: 2
+  timeout: 900
+embedding:
+  python: python
+  model_path: models/NV-Embed-v2
+  model_revision: 3fa59658547db50a1e8e3346cf057fd0c77ed6ef
+  dimension: 4096
+  device: cuda
+  cuda_visible_devices: '0'
+  max_length: 2048
+  batch_size: 4
+  threads: 4
+alignment:
+  identity_review: true
+  same_document_distinct_groups: true
+  candidate_k: 12
+  semantic_min: 0.8
+  representation: name
+  clustering: complete_link
+  threads: 4
+  context_facts: 6
+search:
+  particles: 100
+  steps: 2
+  rounds: 4
+  delta: 0.1
+  epsilon_max: 0.3
+  relation_threshold: 0.7
+  link_candidates: 50
+  check_batch: 20
+  direction_policy: explicit_only
+  effort_batch: 10
+  archive_display: 10
+  anchor_temperature: 0.1
+  source_share: 0.5
+reader:
+  top_k: 5
+  output_tokens: 1536
+  participant_articles: true
+readonly_caches: []
+graph_directory: experiments/particle_hotpotqa/graph
+execution:
+  ports:
+  - 11434
+  embedding_url: http://127.0.0.1:11700
+  lock_directory: experiments/particle_services/locks
+pilot:
+  documents: 24
+  seed: 2026100407

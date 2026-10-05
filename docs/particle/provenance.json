@@ -1,0 +1,168 @@
+{
+  "snapshot": "third graph r4q + online r11",
+  "source_files": {
+    "ppr_graphrag/graph/alignment.py": {
+      "source": "prompt_candidates/particle_v2_joint_r4q/particle/build.py",
+      "source_sha256": "2814cb2c70e4a040b57eb524f744ee68cf32723de6ddfa99d4eb2e069435e601",
+      "published_sha256": "ce0c357c0f5923427cf19a2d62287fc55fbecc429ad45227b8c205850f6da925"
+    },
+    "ppr_graphrag/graph/assembly.py": {
+      "source": "prompt_candidates/particle_v2_joint_r4q/particle/adapter.py",
+      "source_sha256": "e2cf6d3f8d69068747b441bc07ad20c1912a52dc21cfc12518ca68bbab77586a",
+      "published_sha256": "eae719c5bf3132fa664701119c2165bd7ba4c00a24a819da1e48b9a7a90ea81d"
+    },
+    "ppr_graphrag/graph/identity.py": {
+      "source": "prompt_candidates/particle_v2_joint_r4q/particle/identity.py",
+      "source_sha256": "8a5524338046067c349406e56c0029e3cb501eb60f5c851503e84351544c3ece",
+      "published_sha256": "06f9aa0386175b42aecd6cea7da4348e63fbead2637152d725268409b5787ea1"
+    },
+    "ppr_graphrag/llm/joint_extraction.py": {
+      "source": "prompt_candidates/particle_v2_joint_r4q/particle/joint.py",
+      "source_sha256": "514400a7f94f9ae41b3881673a1bec7c6a4edbe8f2391f9c06d110dac21faaef",
+      "published_sha256": "fde9b5f4fd9d491cc0ed43dda95764f335d6cc2e847dde2e7c4f130e7b873155"
+    },
+    "ppr_graphrag/pipelines/build_particle_graph.py": {
+      "source": "prompt_candidates/particle_v2_joint_r4q/run.py",
+      "source_sha256": "875dbde46cf8434882bd7e02e6e1072a6896761601294c9a50d5a70fde2eb902",
+      "published_sha256": "7b2d161eed9375e43b7ac8a8e2a0ba262e7ef5abf340b6379b550e14f96cfd77"
+    },
+    "ppr_graphrag/graph/fact_graph.py": {
+      "source": "prompt_candidates/particle_joint_r4q_memory_r11/particle/graph.py",
+      "source_sha256": "98e2ddc6b6f964f36e5faa6f81f4fc809296aa402c2a3d3aca1735351777e3d2",
+      "published_sha256": "c06d3b5469f4473ca25801bb36f49953fdc933b77429bcb27738fc1a0a9f4570"
+    },
+    "ppr_graphrag/llm/chain_controller.py": {
+      "source": "prompt_candidates/particle_joint_r4q_memory_r11/particle/controller.py",
+      "source_sha256": "f468bf03d64b7ede0867806135e0ea76312b798fe40c211290624c512dd1dd66",
+      "published_sha256": "3530b828e93f743861ef46b739f3665855604228002643e8e068b3bbb276cb89"
+    },
+    "ppr_graphrag/llm/chain_schemas.py": {
+      "source": "prompt_candidates/particle_joint_r4q_memory_r11/particle/schemas.py",
+      "source_sha256": "b676830cd6debef0992f3b1382dc2597f5c9280172eb01745d233bae3a347106",
+      "published_sha256": "b676830cd6debef0992f3b1382dc2597f5c9280172eb01745d233bae3a347106"
+    },
+    "ppr_graphrag/retrieval/particle.py": {
+      "source": "prompt_candidates/particle_joint_r4q_memory_r11/particle/search.py",
+      "source_sha256": "8b18f10d8c35fa5be72b200027276a569fc69e57b4348fa21eae59ea3f3053f0",
+      "published_sha256": "38cbdf1786dad69d6b9d4547d9f77f0c802bd2e964f7273b0d1e068ddb17f575"
+    },
+    "ppr_graphrag/retrieval/chain_display.py": {
+      "source": "prompt_candidates/particle_joint_r4q_memory_r11/particle/display.py",
+      "source_sha256": "c2e2675ee65aad1ca9377752a68ac87911ff2c1be7198d8b79113731d6fe79ba",
+      "published_sha256": "c2e2675ee65aad1ca9377752a68ac87911ff2c1be7198d8b79113731d6fe79ba"
+    },
+    "ppr_graphrag/retrieval/source_context.py": {
+      "source": "prompt_candidates/particle_joint_r4q_memory_r11/particle/context.py",
+      "source_sha256": "7dd3a9067557f2dba951c9c9486831db9fe4f0a1ceb6e97165ae1e783a2a131d",
+      "published_sha256": "c9d741dc2e9494352202ceb8a75658cb199cd93c2aca622fba156af7a0c1dd55"
+    },
+    "ppr_graphrag/pipelines/answer_particle.py": {
+      "source": "prompt_candidates/particle_joint_r4q_memory_r11/particle/pipeline.py",
+      "source_sha256": "7fbcf03527636cb62e48b90574ff4698d226bc44e0f9cdb727c63c8f496758b8",
+      "published_sha256": "12a5dce718fe8d8d75384fbc065b4b01219d22132d5af3163a5a28b8a46ccfd8"
+    },
+    "ppr_graphrag/pipelines/run_particle.py": {
+      "source": "prompt_candidates/particle_joint_r4q_memory_r11/run.py",
+      "source_sha256": "138beb74d1ca38fc6473971fc427680ffb6ac1d1e2dfb936d4ea53425709772b",
+      "published_sha256": "b9b171c38cc7e1b359d2857d0d31798db27ff5aad41833836cd1076f9cfb80c4"
+    },
+    "ppr_graphrag/llm/structured_runtime.py": {
+      "source": "prompt_candidates/particle_joint_r4q_memory_r11/particle/runtime.py",
+      "source_sha256": "62db64ce1ecb1a74b91ea6a3220c14798dde5becd8de28e2424242deb9b7b26d",
+      "published_sha256": "da2ebed098c1fa7656cf5472c301926c2f92468a06583f62e28f1185e9a2a126"
+    },
+    "ppr_graphrag/llm/token_count.py": {
+      "source": "prompt_candidates/particle_joint_r4q_memory_r11/particle/token_count.py",
+      "source_sha256": "52db290c15a236b3806fa680b754944e4cfe7e597be715d1ca63cbcf50a67f1a",
+      "published_sha256": "7455ee0f3bac574f4d5259d724a3c2eef17a3ae96e01f5ccc89aac81afdc3b84"
+    },
+    "ppr_graphrag/embedding/encoder.py": {
+      "source": "ppr_graphrag/particle/encoder.py",
+      "source_sha256": "7a46384d9d2078a01ce385fcf72239fcdf83fe9953c7e2012a0c1d299c1f2fde",
+      "published_sha256": "9572bb1e2be3dd611b86008680ef92b95e52392f7723155f6a860f2e98228090"
+    },
+    "ppr_graphrag/embedding/parallel_encoder.py": {
+      "source": "ppr_graphrag/particle/parallel_encoder.py",
+      "source_sha256": "6a69dfe1c26494c31e803ae229b8cced772e8c58fe5e3ead891caaafb6bff8de",
+      "published_sha256": "fbec003c972f72d8469dd3e98dae9ed9f643b6d3b5c502d73b3923a1446e369b"
+    },
+    "ppr_graphrag/embedding/parallel_embedding.py": {
+      "source": "ppr_graphrag/particle/parallel_embedding.py",
+      "source_sha256": "7c5f64147c47633dcfa36cf2df30f2178b089e9927c2a88f5ee652b7b3aa89bb",
+      "published_sha256": "70b174eb968b33c3a18dc8f032445bc9e15e08c66fc405752911aca814ea42ca"
+    },
+    "ppr_graphrag/llm/harmony_special_tokens.json": {
+      "source": "prompt_candidates/particle_joint_r4q_memory_r11/harmony_special_tokens.json",
+      "source_sha256": "e0a19478a860ef38e6f1250aee9f4949d0add4b8eaec152359602ff2ba3b79f4",
+      "published_sha256": "e0a19478a860ef38e6f1250aee9f4949d0add4b8eaec152359602ff2ba3b79f4"
+    },
+    "prompts/inverse.md": {
+      "source": "prompt_candidates/particle_v2_joint_r4q/prompts/inverse.md",
+      "source_sha256": "b55347faed0af39021cd4798268ed9ac9a022c289f79c9168a88690700d0959d",
+      "published_sha256": "b55347faed0af39021cd4798268ed9ac9a022c289f79c9168a88690700d0959d"
+    },
+    "prompts/assemble.md": {
+      "source": "prompt_candidates/particle_joint_r4q_memory_r11/prompts/assemble.md",
+      "source_sha256": "f58b29d4cd99097082cf6f0fb8aad1becbb08bc7ec00d55cdcb72f2901c0c3f9",
+      "published_sha256": "f58b29d4cd99097082cf6f0fb8aad1becbb08bc7ec00d55cdcb72f2901c0c3f9"
+    },
+    "prompts/check.md": {
+      "source": "prompt_candidates/particle_joint_r4q_memory_r11/prompts/check.md",
+      "source_sha256": "edc7272120e1d164c455c0ea24045a60ec514f08df28a1be7adf9b48be82d287",
+      "published_sha256": "edc7272120e1d164c455c0ea24045a60ec514f08df28a1be7adf9b48be82d287"
+    },
+    "prompts/types.md": {
+      "source": "prompt_candidates/particle_v2_joint_r4q/prompts/types.md",
+      "source_sha256": "8d609159d1b73ff71d391e6abcffb4f12a84b28dc0ea9e3d57cffb427322acbd",
+      "published_sha256": "8d609159d1b73ff71d391e6abcffb4f12a84b28dc0ea9e3d57cffb427322acbd"
+    },
+    "prompts/joint.md": {
+      "source": "prompt_candidates/particle_v2_joint_r4q/prompts/joint.md",
+      "source_sha256": "898c9e8c3cc2a4a495f928e4620f68a92053fe0a451954bf6b6726167076ee53",
+      "published_sha256": "898c9e8c3cc2a4a495f928e4620f68a92053fe0a451954bf6b6726167076ee53"
+    },
+    "prompts/reader.md": {
+      "source": "prompt_candidates/particle_joint_r4q_memory_r11/prompts/reader.md",
+      "source_sha256": "3d6641ddbd6972e667c49a3d3ef836825b6b9daf9944e9e30972dac38cd7ca09",
+      "published_sha256": "3d6641ddbd6972e667c49a3d3ef836825b6b9daf9944e9e30972dac38cd7ca09"
+    },
+    "prompts/initialize.md": {
+      "source": "prompt_candidates/particle_joint_r4q_memory_r11/prompts/initialize.md",
+      "source_sha256": "83917b48f5cf5dc0fe437c4518f603e8ceb964268dd2afc46b9b7879e50c7c73",
+      "published_sha256": "83917b48f5cf5dc0fe437c4518f603e8ceb964268dd2afc46b9b7879e50c7c73"
+    },
+    "prompts/identity.md": {
+      "source": "prompt_candidates/particle_v2_joint_r4q/prompts/identity.md",
+      "source_sha256": "8dde81a2da9b7a3b2a5847714dd41c11dd5b12c46d8171865d20dcf2145e4434",
+      "published_sha256": "8dde81a2da9b7a3b2a5847714dd41c11dd5b12c46d8171865d20dcf2145e4434"
+    },
+    "ppr_graphrag/core/cache.py": {
+      "source": "ppr_graphrag/core/cache.py",
+      "source_sha256": "56ce6e22e6109a63638f7056c2f5768af108f464e84652fff2c2e591703c8793",
+      "published_sha256": "56ce6e22e6109a63638f7056c2f5768af108f464e84652fff2c2e591703c8793"
+    },
+    "ppr_graphrag/evaluation/qa_metrics.py": {
+      "source": "ppr_graphrag/evaluation/qa_metrics.py",
+      "source_sha256": "5c66f3987294a4a26bc34fb1c5923c63d31ddd2f2125f4f9024074520068534d",
+      "published_sha256": "5c66f3987294a4a26bc34fb1c5923c63d31ddd2f2125f4f9024074520068534d"
+    }
+  },
+  "publication_scope": "Integrate frozen methods into existing project packages; adjust imports, paths and execution entry points; no proposed algorithm or prompt fixes.",
+  "validation": {
+    "algorithm_functions_or_classes_ast_identical": 50,
+    "prompts_byte_identical": 8,
+    "existing_cache_and_qa_metrics_unchanged": true,
+    "runtime_policy": "Online call body identical after explicit policy guard normalization; construction disables its two additional response checks.",
+    "no_new_test_files": true,
+    "no_gpu_inference_rerun": true
+  },
+  "execution_changes": [
+    "Unversioned construction/retrieval package imports and configurable foreground entry points",
+    "External LLM/NV services and per-item SQLite caches match borrowed execution; service ports and shared locks are configurable",
+    "Optional uniform pilot replaces dataset-specific local pilot files; no mandatory local review file",
+    "Fresh configs omit historical readonly/inverse caches; raw experiment metrics remain snapshots, not rerun claims",
+    "No algorithm or prompt fix from subsequent discussion",
+    "Existing cache and QA metrics reused unchanged; shared name normalization and tokenization; construction response validation retained via ExtractionModels flag"
+  ],
+  "layout": "Integrated into existing ppr_graphrag graph/llm/retrieval/embedding/pipelines; prompts at repository root"
+}

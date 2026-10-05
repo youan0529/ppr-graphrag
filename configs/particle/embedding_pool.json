@@ -1,0 +1,11 @@
+{
+  "a100_replicas_per_gpu": 1,
+  "single_admission_mib": 23000,
+  "gpu3_other_budget_mib": 5000,
+  "shard_min_free_mib": 10000,
+  "shard_activation_reserve_mib": 4096,
+  "gpu2_idle_used_mib": 512,
+  "refresh_seconds": 30,
+  "retry_seconds": 300,
+  "worker_timeout_seconds": 900
+}

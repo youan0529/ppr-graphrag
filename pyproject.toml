@@ -21,6 +21,7 @@ dependencies = [
   "accelerate",
   "einops",
   "faiss-cpu",
+  "tiktoken",
 ]
 
 [project.optional-dependencies]
@@ -28,6 +29,9 @@ dev = ["pytest", "ruff"]
 
 [tool.setuptools.packages.find]
 include = ["ppr_graphrag*"]
+
+[tool.setuptools.package-data]
+"ppr_graphrag.llm" = ["harmony_special_tokens.json"]
 
 [tool.ruff]
 line-length = 120

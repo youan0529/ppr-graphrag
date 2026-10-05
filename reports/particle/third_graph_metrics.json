@@ -1,0 +1,15 @@
+{
+  "num_selected_queries": 1000,
+  "num_finished": 1000,
+  "recall": 0.888,
+  "complete_evidence": 0.81,
+  "budget_feasible_complete_evidence": 0.81,
+  "checker_sufficient": 0.548,
+  "chain_verified": 0.802,
+  "chain_corrected": 0.001,
+  "final_evidence_sufficient": 0.803,
+  "em": 0.57,
+  "f1": 0.6584467920967919,
+  "reader_executed": 980,
+  "note": "All selected queries in denominator. Small corpus runs are pipeline diagnostics only."
+}
